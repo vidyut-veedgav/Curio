@@ -1,6 +1,63 @@
 // prisma/schema.prisma
 datasource db {
-  provider  = "postgresql"
-  url  	    = env("DATABASE_URL")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id               String            @id @default(uuid()) @map("user_id") @db.Uuid
+  firstName        String            @map("first_name")
+  lastName         String            @map("last_name")
+  email            String            @unique
+  bio              String?
+  learningSessions LearningSession[]
+
+  @@map("user")
+}
+
+model LearningSession {
+  id             String   @id @default(uuid()) @map("learning_session_id") @db.Uuid
+  userId         String   @map("user_id") @db.Uuid
+  name           String
+  description    String
+  originalPrompt String?  @map("original_prompt")
+  user           User     @relation(fields: [userId], references: [id])
+  modules        Module[]
+
+  @@map("learning_session")
+}
+
+model Module {
+  id                String          @id @default(uuid()) @map("module_id") @db.Uuid
+  learningSessionId String          @map("learning_sesion_id") @db.Uuid
+  name              String
+  overview          String
+  order             Int
+  isComplete        Boolean         @default(false) @map("is_complete")
+  learningSession   LearningSession @relation(fields: [learningSessionId], references: [id])
+  chatMessages      ChatMessage[]
+
+  @@map("module")
+}
+
+model ChatMessage {
+  id       String            @id @default(uuid()) @map("chat_message_id") @db.Uuid
+  moduleId String            @map("module_id") @db.Uuid
+  content  String
+  author   ChatMessageAuthor
+  order    Int
+  module   Module            @relation(fields: [moduleId], references: [id])
+
+  @@map("chat_message")
+}
+
+enum ChatMessageAuthor {
+  User
+  AI
+
+  @@map("chat_message_author")
+}
