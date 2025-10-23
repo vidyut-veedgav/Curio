@@ -33,7 +33,7 @@ model LearningSession {
 
 model Module {
   id                String          @id @default(uuid()) @map("module_id") @db.Uuid
-  learningSessionId String          @map("learning_sesion_id") @db.Uuid
+  learningSessionId String          @map("learning_session_id") @db.Uuid
   name              String
   overview          String
   order             Int
