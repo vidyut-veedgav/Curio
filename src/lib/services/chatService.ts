@@ -2,6 +2,9 @@ import { prisma } from '@/lib/db';
 import { openai } from '@/lib/openai';
 import { ChatMessageAuthor } from '@prisma/client';
 
+/**
+ * Interface for a sent message
+ */
 export interface SendMessageInput {
   moduleId: string;
   content: string;
