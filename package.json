@@ -10,7 +10,13 @@
     "lint": "eslint",
     "test": "vitest",
     "test:ui": "vitest --ui",
-    "test:coverage": "vitest --coverage"
+    "test:coverage": "vitest --coverage",
+    "seed": "tsx scripts/seed.ts",
+    "test:user": "tsx scripts/test-services/test-user-service.ts",
+    "test:session": "tsx scripts/test-services/test-session-service.ts",
+    "test:module": "tsx scripts/test-services/test-module-service.ts",
+    "test:chat": "tsx scripts/test-services/test-chat-service.ts",
+    "test:all": "tsx scripts/test-all.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
@@ -38,6 +44,7 @@
     "jsdom": "^27.0.1",
     "prisma": "^6.16.0",
     "tailwindcss": "^4.0.0",
+    "tsx": "^4.20.6",
     "typescript": "^5",
     "vitest": "^4.0.1"
   }
