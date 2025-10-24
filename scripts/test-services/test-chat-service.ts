@@ -19,7 +19,7 @@ function printResult(label: string, data: any) {
 
 function printError(label: string, error: any) {
   console.log(`\n${'='.repeat(60)}`);
-  console.log(`❌ ${label}`);
+  console.log(`${label}`);
   console.log('='.repeat(60));
   console.log(`Error: ${error.message}`);
 }

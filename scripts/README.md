@@ -10,9 +10,25 @@ This directory contains scripts for testing and interacting with the service lay
 
 ## Quick Start
 
-### 1. Seed the Database
+### 1. Clean the Database (Optional)
 
-First, populate your database with test data:
+If you want to start with a completely empty database:
+
+```bash
+npm run clean
+```
+
+This will:
+- Ask for confirmation before proceeding
+- Delete all chat messages, modules, sessions, and users
+- Show counts before and after deletion
+- Keep the database schema intact
+
+**WARNING**: This permanently deletes all data!
+
+### 2. Seed the Database
+
+Populate your database with test data:
 
 ```bash
 npm run seed
@@ -26,7 +42,7 @@ This will:
 
 **Note**: The seed script will delete existing data first. Comment out the cleanup section if you want to keep existing data.
 
-### 2. Test Individual Services
+### 3. Test Individual Services
 
 Run any of these commands to test specific service methods:
 
