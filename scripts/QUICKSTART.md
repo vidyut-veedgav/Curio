@@ -17,7 +17,17 @@ OPENAI_API_KEY="sk-..."
 npx prisma generate
 ```
 
-## Step 3: Seed the Database
+## Step 3: Clean Database (Optional)
+
+If you want to start fresh:
+
+```bash
+npm run clean
+```
+
+**WARNING**: Permanently deletes all data! You'll be asked to confirm.
+
+## Step 4: Seed the Database
 
 ```bash
 npm run seed
@@ -25,7 +35,7 @@ npm run seed
 
 **Output**: You'll see test users, sessions, modules, and messages created with their IDs.
 
-## Step 4: Test Individual Services
+## Step 5: Test Individual Services
 
 Choose which service to test:
 
@@ -43,13 +53,20 @@ npm run test:module
 npm run test:chat
 ```
 
-## Step 5: Run All Tests (Optional)
+## Step 6: Run All Tests (Optional)
 
 ```bash
 npm run test:all
 ```
 
 This runs all service tests in sequence.
+
+## Database Management Commands
+
+```bash
+npm run clean   # Delete all data (asks for confirmation)
+npm run seed    # Populate with test data
+```
 
 ## What You'll See
 
@@ -153,6 +170,7 @@ scripts/
 ## Available Commands
 
 ```bash
+npm run clean        # Delete all database records (asks confirmation)
 npm run seed         # Seed database with test data
 npm run test:user    # Test user service
 npm run test:session # Test session service (uses OpenAI)

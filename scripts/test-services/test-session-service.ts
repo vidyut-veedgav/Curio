@@ -22,25 +22,25 @@ function printResult(label: string, data: any) {
 
 function printError(label: string, error: any) {
   console.log(`\n${'='.repeat(60)}`);
-  console.log(`❌ ${label}`);
+  console.log(`${label}`);
   console.log('='.repeat(60));
   console.log(`Error: ${error.message}`);
 }
 
 async function testSessionService() {
-  console.log('🧪 Testing Session Service Methods\n');
+  console.log('Testing Session Service Methods\n');
 
   try {
     // Get a sample user ID from the database
     const sampleUser = await prisma.user.findFirst();
 
     if (!sampleUser) {
-      console.log('⚠️  No users found in database. Please run: npm run seed');
+      console.log('No users found in database. Please run: npm run seed');
       return;
     }
 
     const userId = sampleUser.id;
-    console.log(`📌 Using sample user ID: ${userId}\n`);
+    console.log(`Using sample user ID: ${userId}\n`);
 
     // Test 1: getSessions() - Get all sessions for user
     console.log('TEST 1: getSessions() - Get All User Sessions');
@@ -67,7 +67,7 @@ async function testSessionService() {
       complexity: 'beginner' as const,
     };
     console.log('Input:', shortSessionInput);
-    console.log('⏳ Calling OpenAI API to generate modules...');
+    console.log('Calling OpenAI API to generate modules...');
 
     const startTime1 = Date.now();
     const shortSession = await createLearningSession(shortSessionInput);
@@ -109,7 +109,7 @@ async function testSessionService() {
       complexity: 'advanced' as const,
     };
     console.log('Input:', longSessionInput);
-    console.log('⏳ Calling OpenAI API to generate modules...');
+    console.log('Calling OpenAI API to generate modules...');
 
     const startTime3 = Date.now();
     const longSession = await createLearningSession(longSessionInput);
@@ -140,12 +140,12 @@ async function testSessionService() {
 
     // Summary
     console.log('\n' + '='.repeat(60));
-    console.log('📊 Session Creation Summary:');
+    console.log('Session Creation Summary:');
     console.log('='.repeat(60));
     console.log(`Short session modules: ${shortSession.modules.length}`);
     console.log(`Medium session modules: ${mediumSession.modules.length}`);
     console.log(`Long session modules: ${longSession.modules.length}`);
-    console.log('\n✅ Session Service Tests Completed Successfully!');
+    console.log('\nSession Service Tests Completed Successfully!');
     console.log('='.repeat(60));
 
   } catch (error: any) {
@@ -159,10 +159,10 @@ async function testSessionService() {
 // Run tests
 testSessionService()
   .then(() => {
-    console.log('\n✅ All tests finished\n');
+    console.log('\nAll tests finished\n');
     process.exit(0);
   })
   .catch((error) => {
-    console.error('\n❌ Test suite failed:', error);
+    console.error('\nTest suite failed:', error);
     process.exit(1);
   });
