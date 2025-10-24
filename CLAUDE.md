@@ -1,0 +1,313 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Project Overview
+
+An AI-powered learning platform that enables users to create personalized learning sessions. Users provide a topic prompt, and the system generates structured learning modules with AI-assisted chat interactions for each module.
+
+## Tech Stack
+
+- **Frontend**: React 19.0.0, TypeScript 5.9.3, Tailwind 4.1, Next.js 15.5.6 (App Router)
+- **Backend**: Next.js API Routes, Prisma 6.16 (ORM)
+- **Database**: PostgreSQL (hosted on Neon)
+- **Authentication**: Auth.js 4.24.7
+- **AI**: OpenAI 6.1.0 (using gpt-4o-mini model)
+- **Form Handling**: React Hook Form 7.65.0 with Zod validation
+- **Testing**: Vitest 4.0.1, @testing-library/react 16.3.0, jsdom 27.0.1
+
+## Development Commands
+
+```bash
+# Start development server with Turbopack
+npm run dev
+
+# Build for production
+npm run build
+
+# Start production server
+npm start
+
+# Run linter
+npm run lint
+
+# Run tests with Vitest
+npm test
+
+# Run tests with UI
+npm run test:ui
+
+# Run tests with coverage
+npm run test:coverage
+```
+
+### Database Commands
+
+```bash
+# Generate Prisma Client after schema changes
+npx prisma generate
+
+# Create and apply migrations
+npx prisma migrate dev --name <migration_name>
+
+# Open Prisma Studio (database GUI)
+npx prisma studio
+
+# Push schema changes without creating migrations (development only)
+npx prisma db push
+```
+
+## Architecture
+
+### Database Schema Hierarchy
+
+The application follows a hierarchical data model:
+
+```
+User
+   LearningSession (1:many)
+       name, description, originalPrompt
+       Module (1:many)
+           name, overview, order, isComplete
+           ChatMessage (1:many)
+               content, author (User|AI), order
+```
+
+**Key Schema Details**:
+- All IDs use UUID (`@db.Uuid`)
+- PostgreSQL column names use snake_case (e.g., `user_id`, `learning_session_id`)
+- Prisma models use camelCase with `@map()` directives
+- ChatMessageAuthor enum distinguishes between User and AI messages
+
+### Core Business Logic
+
+**Session Creation Flow**:
+1. User submits a topic/description
+2. Backend invokes OpenAI API to generate structured modules
+3. Each module receives AI-generated objectives and lesson overview
+4. Session creation fails if AI doesn't generate at least one valid module
+5. Sessions are editable until the first module is completed
+
+**Module Completion**:
+- Users can mark modules complete even if chat is left halfway
+- Module completion updates overall session progress
+- All modules must be complete for session to be considered finished
+
+**Chat Message Handling**:
+- Messages persist chronologically by `order` field
+- AI responses use module objectives and chat history as context
+- Message count per module is limited to prevent excessive API usage (100 messages per module)
+- Input sanitization and content filtering applied before AI calls
+
+### Service Layer Structure
+
+The application is organized by feature with fully implemented services in `src/lib/services/`:
+
+#### Session Service (`sessionService.ts`)
+- `createSession({ userId, topic, description?, length?, complexity? })` - Creates session with AI-generated modules
+- `getSessions(userId)` - Retrieves all user sessions
+- `getSessionById(sessionId)` - Retrieves single session with modules
+- AI Integration: Uses `gpt-4o-mini` with `response_format: "json_object"` to generate 3-5 modules
+- Fallback: Returns basic module structure if OpenAI API fails
+- Parameters:
+  - `length`: short | medium | long (affects module count)
+  - `complexity`: beginner | intermediate | advanced (affects content depth)
+
+#### Module Service (`moduleService.ts`)
+- `getModules(sessionId)` - Returns all modules with message counts
+- `getModuleById(moduleId)` - Returns module with learning session context
+- `markModuleComplete(moduleId)` - Marks complete and auto-detects session completion
+- `getModuleTitle(moduleId)` - Helper to fetch module name
+- Session completion: Automatically marks session complete when all modules are complete
+
+#### Chat Service (`chatService.ts`)
+- `getMessages(moduleId)` - Retrieves all chat messages ordered chronologically
+- `sendMessage({ moduleId, content, author })` - Stores message and auto-generates AI responses
+- `generateAIResponse(moduleId)` - Internal function for AI chat responses
+- AI Configuration:
+  - Model: `gpt-4o-mini`
+  - Temperature: 0.7
+  - Max tokens: 500
+  - Context window: Last 20 messages
+  - System prompt includes module objectives for pedagogical alignment
+- Message limit: 100 messages per module (enforced)
+- Auto-response: AI automatically responds when author is `ChatMessageAuthor.User`
+
+#### User Service (`userService.ts`)
+- `getUserData(userId)` - Fetches user profile
+- `setUserData(userId, data)` - Updates firstName, lastName, or bio (email is immutable)
+- `createUser({ email, firstName?, lastName?, bio? })` - Creates new user with duplicate email check
+- Validation: Prevents duplicate email addresses
+
+#### Auth Service (Planned)
+- Authentication and authorization via Auth.js (not yet fully implemented)
+
+### Project Structure
+
+```
+src/
+   app/                     # Next.js App Router
+       layout.tsx           # Root layout with Geist fonts
+       page.tsx             # Home page (currently Next.js template - UI not implemented)
+       globals.css          # Tailwind CSS imports
+       api/
+           sessions/
+               route.ts     # Session API endpoints (POST/GET)
+
+   lib/
+       db.ts                # Prisma client singleton with connection pooling
+       openai.ts            # OpenAI client initialization with API key validation
+       services/
+           sessionService.ts  # Session creation and retrieval
+           moduleService.ts   # Module management and completion
+           chatService.ts     # Chat message handling and AI responses
+           userService.ts     # User profile management
+           __tests__/         # Unit tests for all services
+
+prisma/
+   schema.prisma           # Database schema
+
+docs/
+   business_logic.md      # Comprehensive business rules and user flows
+   services.md            # Service layer API documentation
+   datamodel.md           # Database model overview
+
+vitest.config.ts          # Vitest test configuration
+vitest.setup.ts           # Test setup with mocked environment variables
+```
+
+**Path Aliases**: `@/*` maps to `./src/*` (configured in tsconfig.json)
+
+## API Routes
+
+### POST /api/sessions
+Creates a new learning session with AI-generated modules.
+
+**Request Body**:
+```typescript
+{
+  userId: string;
+  topic: string;
+  description?: string;
+  length?: 'short' | 'medium' | 'long';
+  complexity?: 'beginner' | 'intermediate' | 'advanced';
+}
+```
+
+**Returns**: Created session with modules
+
+**Note**: Authentication check not yet implemented
+
+### GET /api/sessions?userId=<userId>
+Retrieves all learning sessions for a user.
+
+**Query Parameters**:
+- `userId`: User ID (required)
+
+**Returns**: Array of learning sessions
+
+**Note**: Authentication check not yet implemented
+
+## Testing Framework
+
+### Setup
+- **Test Runner**: Vitest 4.0.1
+- **Test Utilities**: @testing-library/react 16.3.0, @testing-library/user-event 14.6.1
+- **Environment**: jsdom 27.0.1 (simulates browser environment)
+- **Config**: `vitest.config.ts` - Node environment, global test utilities, v8 coverage provider
+- **Setup File**: `vitest.setup.ts` - Mocks environment variables (DATABASE_URL, OPENAI_API_KEY)
+
+### Test Organization
+All service tests are located in `src/lib/services/__tests__/`:
+- `chatService.test.ts` - 6 tests covering message retrieval, AI responses, limits, error handling
+- `sessionService.test.ts` - Tests for session creation, AI integration, fallbacks, retrieval
+- `moduleService.test.ts` - Tests for module management, completion, session completion detection
+- `userService.test.ts` - Tests for user profile CRUD operations, validation, duplicate prevention
+- `db.test.ts` - Example Prisma mocking patterns
+
+### Mocking Patterns
+- **Prisma**: Mocked via `vi.mock('@/lib/db')` with `vi.mocked(prisma.model.method)`
+- **OpenAI**: Mocked via `vi.mock('@/lib/openai')` with custom response structures
+- **Environment Variables**: Set in `vitest.setup.ts` to avoid missing .env in CI/CD
+
+### Running Tests
+```bash
+npm test                 # Run all tests
+npm run test:ui          # Run with Vitest UI
+npm run test:coverage    # Run with coverage report
+```
+
+## AI Integration
+
+**Model Used**: gpt-4o-mini (fast and cost-effective for educational content)
+
+**Prompt Composition**:
+- Concatenate user input + context from previous messages + module objectives
+- System prompts enforce pedagogical structure and safety rules
+- Last 20 messages included as context window for chat responses
+
+**Response Filtering**:
+- Safety validation (no NSFW or personal info)
+- Pedagogical structure alignment with goals
+- Markdown syntax validation
+- Content moderation API applied to all AI outputs
+
+**Error Handling**:
+- Prompt injection attempts are sanitized
+- LaTeX/Markdown rendering fallbacks
+- Link validation on module save
+- Fallback to basic module structure if AI generation fails
+
+**Rate Limiting**:
+- 100 message limit per module to prevent excessive API usage
+- Session creation limited by user tier (documented in business_logic.md)
+
+## Environment Variables
+
+Required in `.env`:
+```
+DATABASE_URL="postgresql://..."  # Neon PostgreSQL connection string
+OPENAI_API_KEY="sk-..."          # OpenAI API key (required, validated on startup)
+```
+
+**Note**: `vitest.setup.ts` mocks these for testing to avoid requiring .env in CI/CD environments.
+
+## Key Constraints
+
+- System must support 100+ concurrent users
+- UI load times < 2 seconds
+- DB queries within 500ms
+- RESTful API communication
+
+## Important Notes
+
+- **Frontend Status**: UI is currently minimal (Next.js template placeholder). Component development is the next major milestone.
+- **Authentication**: Planned via Auth.js (Google OAuth and email/password) but not yet fully integrated into routes
+- **Database**: All operations go through Prisma ORM with connection pooling enabled in development
+- **Build Tool**: Next.js uses Turbopack for faster builds
+- **Router**: Uses Next.js 15 App Router (not Pages Router)
+- **TypeScript**: Strict mode is enabled
+- **Testing**: Comprehensive unit tests for all services; integration tests planned
+
+## Development Status
+
+**Completed**:
+- Database schema and migrations
+- Core service layer (session, module, chat, user)
+- OpenAI integration with fallbacks
+- Unit test framework and coverage
+- API routes for session management
+- Connection pooling and performance optimization
+
+**In Progress**:
+- Frontend UI components
+- Authentication integration
+- End-to-end testing
+
+**Planned**:
+- User dashboard
+- Module chat interface
+- Session management UI
+- Profile settings page
+- Integration tests
+- Deployment configuration
