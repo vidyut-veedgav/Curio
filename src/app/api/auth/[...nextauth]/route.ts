@@ -35,6 +35,6 @@ const handler = NextAuth({
 export { handler as GET, handler as POST };
 */
 
-import {handlers} from "@src/lib/auth.ts";
+import { handlers } from "@/lib/auth"
 
 export const { GET, POST } = handlers 
