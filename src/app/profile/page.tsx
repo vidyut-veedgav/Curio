@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { ArrowLeft, User, Pencil } from "lucide-react"
-import { AppHeader } from "@/components/app-header"
+//import { AppHeader } from "@/components/app-header"
 
 export default function ProfilePage() {
   const router = useRouter()
@@ -27,14 +27,6 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <AppHeader
-        rightContent={
-          <Button variant="ghost" size="sm" onClick={() => router.push("/dashboard")}>
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back
-          </Button>
-        }
-      />
 
       <main className="flex-1 container mx-auto px-[var(--spacing-md)] py-[var(--spacing-xl)]">
         <div className="max-w-[var(--container-md)] mx-auto space-y-[var(--gap-lg)]">
