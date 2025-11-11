@@ -22,8 +22,7 @@ describe('userService', () => {
     it('should return user data by ID', async () => {
       const mockUser = {
         id: 'user-123',
-        firstName: 'John',
-        lastName: 'Doe',
+        name: 'John Doe',
         email: 'john@example.com',
         bio: 'Software developer',
       };
@@ -46,11 +45,10 @@ describe('userService', () => {
   });
 
   describe('setUserData', () => {
-    it('should update user first name', async () => {
+    it('should update user name', async () => {
       const mockUpdatedUser = {
         id: 'user-123',
-        firstName: 'Jane',
-        lastName: 'Doe',
+        name: 'Jane Doe',
         email: 'john@example.com',
         bio: 'Software developer',
       };
@@ -58,38 +56,14 @@ describe('userService', () => {
       vi.mocked(prisma.user.update).mockResolvedValue(mockUpdatedUser as any);
 
       const result = await setUserData('user-123', {
-        firstName: 'Jane',
+        name: 'Jane Doe',
       });
 
       expect(result).toEqual(mockUpdatedUser);
       expect(prisma.user.update).toHaveBeenCalledWith({
         where: { id: 'user-123' },
         data: expect.objectContaining({
-          firstName: 'Jane',
-        }),
-      });
-    });
-
-    it('should update user last name', async () => {
-      const mockUpdatedUser = {
-        id: 'user-123',
-        firstName: 'John',
-        lastName: 'Smith',
-        email: 'john@example.com',
-        bio: 'Software developer',
-      };
-
-      vi.mocked(prisma.user.update).mockResolvedValue(mockUpdatedUser as any);
-
-      const result = await setUserData('user-123', {
-        lastName: 'Smith',
-      });
-
-      expect(result).toEqual(mockUpdatedUser);
-      expect(prisma.user.update).toHaveBeenCalledWith({
-        where: { id: 'user-123' },
-        data: expect.objectContaining({
-          lastName: 'Smith',
+          name: 'Jane Doe',
         }),
       });
     });
@@ -97,8 +71,7 @@ describe('userService', () => {
     it('should update user bio', async () => {
       const mockUpdatedUser = {
         id: 'user-123',
-        firstName: 'John',
-        lastName: 'Doe',
+        name: 'John Doe',
         email: 'john@example.com',
         bio: 'Updated bio',
       };
@@ -121,8 +94,7 @@ describe('userService', () => {
     it('should update multiple fields at once', async () => {
       const mockUpdatedUser = {
         id: 'user-123',
-        firstName: 'Jane',
-        lastName: 'Smith',
+        name: 'Jane Smith',
         email: 'john@example.com',
         bio: 'New bio',
       };
@@ -130,8 +102,7 @@ describe('userService', () => {
       vi.mocked(prisma.user.update).mockResolvedValue(mockUpdatedUser as any);
 
       const result = await setUserData('user-123', {
-        firstName: 'Jane',
-        lastName: 'Smith',
+        name: 'Jane Smith',
         bio: 'New bio',
       });
 
@@ -139,8 +110,7 @@ describe('userService', () => {
       expect(prisma.user.update).toHaveBeenCalledWith({
         where: { id: 'user-123' },
         data: expect.objectContaining({
-          firstName: 'Jane',
-          lastName: 'Smith',
+          name: 'Jane Smith',
           bio: 'New bio',
         }),
       });
@@ -149,8 +119,7 @@ describe('userService', () => {
     it('should handle empty bio (set to null)', async () => {
       const mockUpdatedUser = {
         id: 'user-123',
-        firstName: 'John',
-        lastName: 'Doe',
+        name: 'John Doe',
         email: 'john@example.com',
         bio: null,
       };
@@ -168,8 +137,7 @@ describe('userService', () => {
       // Email updates should be handled by auth layer
       const mockUpdatedUser = {
         id: 'user-123',
-        firstName: 'Jane',
-        lastName: 'Doe',
+        name: 'Jane Doe',
         email: 'john@example.com', // Email remains unchanged
         bio: 'Software developer',
       };
@@ -177,7 +145,7 @@ describe('userService', () => {
       vi.mocked(prisma.user.update).mockResolvedValue(mockUpdatedUser as any);
 
       const result = await setUserData('user-123', {
-        firstName: 'Jane',
+        name: 'Jane Doe',
       });
 
       expect(result.email).toBe('john@example.com');
@@ -194,8 +162,7 @@ describe('userService', () => {
     it('should create a new user', async () => {
       const mockNewUser = {
         id: 'user-new',
-        firstName: 'Alice',
-        lastName: 'Johnson',
+        name: 'Alice Johnson',
         email: 'alice@example.com',
         bio: null,
       };
@@ -205,8 +172,7 @@ describe('userService', () => {
 
       const result = await createUser({
         email: 'alice@example.com',
-        firstName: 'Alice',
-        lastName: 'Johnson',
+        name: 'Alice Johnson',
       });
 
       expect(result).toEqual(mockNewUser);
@@ -216,8 +182,7 @@ describe('userService', () => {
       expect(prisma.user.create).toHaveBeenCalledWith({
         data: {
           email: 'alice@example.com',
-          firstName: 'Alice',
-          lastName: 'Johnson',
+          name: 'Alice Johnson',
         },
       });
     });
@@ -225,8 +190,7 @@ describe('userService', () => {
     it('should create a user with bio', async () => {
       const mockNewUser = {
         id: 'user-new',
-        firstName: 'Bob',
-        lastName: 'Wilson',
+        name: 'Bob Wilson',
         email: 'bob@example.com',
         bio: 'Product designer',
       };
@@ -236,8 +200,7 @@ describe('userService', () => {
 
       const result = await createUser({
         email: 'bob@example.com',
-        firstName: 'Bob',
-        lastName: 'Wilson',
+        name: 'Bob Wilson',
         bio: 'Product designer',
       });
 
@@ -245,8 +208,7 @@ describe('userService', () => {
       expect(prisma.user.create).toHaveBeenCalledWith({
         data: {
           email: 'bob@example.com',
-          firstName: 'Bob',
-          lastName: 'Wilson',
+          name: 'Bob Wilson',
           bio: 'Product designer',
         },
       });
@@ -255,8 +217,7 @@ describe('userService', () => {
     it('should throw error if user already exists', async () => {
       const mockExistingUser = {
         id: 'user-existing',
-        firstName: 'Existing',
-        lastName: 'User',
+        name: 'Existing User',
         email: 'existing@example.com',
         bio: null,
       };
@@ -266,8 +227,7 @@ describe('userService', () => {
       await expect(
         createUser({
           email: 'existing@example.com',
-          firstName: 'New',
-          lastName: 'User',
+          name: 'New User',
         })
       ).rejects.toThrow('User with this email already exists');
 
