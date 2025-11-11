@@ -1,11 +1,10 @@
-// prisma/schema.prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
-}
-
-generator client {
-  provider = "prisma-client-js"
 }
 
 model User {
@@ -14,9 +13,46 @@ model User {
   lastName         String            @map("last_name")
   email            String            @unique
   bio              String?
+  image            String?
+  accounts         Account[]
+  sessions         Session[]
   learningSessions LearningSession[]
 
   @@map("user")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?  @db.Text
+  access_token      String?  @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?  @db.Text
+  session_state     String?
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
 }
 
 model LearningSession {
@@ -38,8 +74,8 @@ model Module {
   overview          String
   order             Int
   isComplete        Boolean         @default(false) @map("is_complete")
-  learningSession   LearningSession @relation(fields: [learningSessionId], references: [id])
   chatMessages      ChatMessage[]
+  learningSession   LearningSession @relation(fields: [learningSessionId], references: [id])
 
   @@map("module")
 }
