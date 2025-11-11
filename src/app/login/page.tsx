@@ -1,5 +1,6 @@
 "use client";
 import { signIn } from "next-auth/react";
+import { Button } from "@/components/ui/button";
 
 export default function LoginPage() {
   return (
@@ -9,12 +10,12 @@ export default function LoginPage() {
         <p className="text-xl text-gray-600 max-w-md">
           Your AI-powered learning companion
         </p>
-        <button
+        <Button
           onClick={() => signIn("google", { callbackUrl: "/home" })}
-          className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-8 py-3 rounded-lg shadow-lg transition-colors duration-200"
+          className="shadow-lg"
         >
           Sign in with Google
-        </button>
+        </Button>
       </div>
     </div>
   );
