@@ -4,6 +4,7 @@ import type React from "react"
 import { useCallback, useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { useSession } from "next-auth/react"
+import { useQueryClient } from "@tanstack/react-query"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -44,6 +45,7 @@ function combineName(first: string, last: string) {
 export default function ProfilePage() {
   const router = useRouter()
   const { status } = useSession()
+  const queryClient = useQueryClient()
   const [isEditing, setIsEditing] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [isLoadingProfile, setIsLoadingProfile] = useState(true)
@@ -156,6 +158,8 @@ export default function ProfilePage() {
       setBio(payload.data.bio ?? "")
       setAvatarUrl(payload.data.image)
       setSuccessMessage("Profile updated successfully")
+      queryClient.setQueryData(["current-user"], payload.data)
+      queryClient.invalidateQueries({ queryKey: ["current-user"] })
       setIsEditing(false)
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unable to save profile"
@@ -332,7 +336,7 @@ export default function ProfilePage() {
         <div className="mt-6">
           <Button
             variant="outline"
-            onClick={() => signOut({ callbackUrl: "/login" })}
+            onClick={() => signOut({ callbackUrl: "/" })}
             className="w-full"
           >
             <LogOut className="mr-2 h-4 w-4" />
