@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Header } from "./components/Header";
+import { Header } from "../../components/Header";
 import { SessionCard } from "./components/SessionCard";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
