@@ -12,7 +12,7 @@ import { ChatMessageAuthor } from '@prisma/client';
 // Helper function to print formatted output
 function printResult(label: string, data: any) {
   console.log(`\n${'='.repeat(60)}`);
-  console.log(`🔹 ${label}`);
+  console.log(`${label}`);
   console.log('='.repeat(60));
   console.log(JSON.stringify(data, null, 2));
 }
@@ -26,12 +26,12 @@ function printError(label: string, error: any) {
 
 function printConversation(messages: any[]) {
   console.log(`\n${'='.repeat(60)}`);
-  console.log('💬 Conversation History');
+  console.log('Conversation History');
   console.log('='.repeat(60));
 
   messages.forEach((msg, index) => {
-    const icon = msg.author === ChatMessageAuthor.User ? '👤' : '🤖';
-    console.log(`\n${icon} ${msg.author} (Message ${index + 1}):`);
+    const prefix = msg.author === ChatMessageAuthor.User ? '[User]' : '[AI]';
+    console.log(`\n${prefix} ${msg.author} (Message ${index + 1}):`);
     console.log('-'.repeat(60));
     console.log(msg.content);
   });
@@ -40,7 +40,7 @@ function printConversation(messages: any[]) {
 }
 
 async function testChatService() {
-  console.log('🧪 Testing Chat Service Methods\n');
+  console.log('Testing Chat Service Methods\n');
 
   try {
     // Get a sample module from the database
@@ -56,14 +56,14 @@ async function testChatService() {
     });
 
     if (!sampleModule) {
-      console.log('⚠️  No modules found in database. Please run: npm run seed');
+      console.log('WARNING: No modules found in database. Please run: npm run seed');
       return;
     }
 
     const moduleId = sampleModule.id;
-    console.log(`📌 Using module ID: ${moduleId}`);
-    console.log(`📌 Module: ${sampleModule.name}`);
-    console.log(`📌 Session: ${sampleModule.learningSession.name}\n`);
+    console.log(`Using module ID: ${moduleId}`);
+    console.log(`Module: ${sampleModule.name}`);
+    console.log(`Session: ${sampleModule.learningSession.name}\n`);
 
     // Test 1: getMessages() - Get existing messages
     console.log('TEST 1: getMessages() - Retrieve Existing Messages');
@@ -83,7 +83,7 @@ async function testChatService() {
       author: ChatMessageAuthor.User,
     };
     console.log('Input:', userMessage1);
-    console.log('⏳ Sending message and generating AI response...');
+    console.log('Sending message and generating AI response...');
 
     const startTime1 = Date.now();
     const response1 = await sendMessage(userMessage1);
@@ -114,7 +114,7 @@ async function testChatService() {
       author: ChatMessageAuthor.User,
     };
     console.log('Input:', userMessage2);
-    console.log('⏳ Sending message and generating AI response...');
+    console.log('Sending message and generating AI response...');
 
     const startTime2 = Date.now();
     const response2 = await sendMessage(userMessage2);
@@ -169,7 +169,7 @@ async function testChatService() {
 
     const testUser = await prisma.user.findFirst();
     if (!testUser) {
-      console.log('⚠️  No users found for limit test');
+      console.log('WARNING: No users found for limit test');
     } else {
       const limitTestSession = await prisma.learningSession.create({
         data: {
@@ -208,7 +208,7 @@ async function testChatService() {
         data: messagesToCreate,
       });
 
-      console.log('✅ Added 98 messages (limit is 100)');
+      console.log('Added 98 messages (limit is 100)');
 
       // Try to add one more user message (should succeed: 99 user + 100 AI = exactly at limit)
       console.log('\nAttempting to add message 99 (should succeed)...');
@@ -223,7 +223,7 @@ async function testChatService() {
           content: 'This should be the last valid message',
           author: ChatMessageAuthor.User,
         });
-        console.log('❌ Expected this to fail at 100 messages, but it succeeded!');
+        console.log('ERROR: Expected this to fail at 100 messages, but it succeeded!');
       } catch (error: any) {
         printResult('Output - Message Limit Enforced (Expected)', {
           message: error.message,
@@ -244,11 +244,11 @@ async function testChatService() {
       await prisma.learningSession.delete({
         where: { id: limitTestSession.id },
       });
-      console.log('✅ Test session cleaned up');
+      console.log('Test session cleaned up');
     }
 
     console.log('\n' + '='.repeat(60));
-    console.log('✅ Chat Service Tests Completed Successfully!');
+    console.log('Chat Service Tests Completed Successfully!');
     console.log('='.repeat(60));
 
   } catch (error: any) {
@@ -262,10 +262,10 @@ async function testChatService() {
 // Run tests
 testChatService()
   .then(() => {
-    console.log('\n✅ All tests finished\n');
+    console.log('\nAll tests finished\n');
     process.exit(0);
   })
   .catch((error) => {
-    console.error('\n❌ Test suite failed:', error);
+    console.error('\nTest suite failed:', error);
     process.exit(1);
   });

@@ -80,15 +80,15 @@ Each test script will show:
 ### Example Output
 
 ```
-🧪 Testing User Service Methods
+Testing User Service Methods
 
-📌 Using sample user ID: abc-123-def-456
+Using sample user ID: abc-123-def-456
 
 TEST 1: getUserData()
 Input: { userId: 'abc-123-def-456' }
 
 ============================================================
-🔹 Output - User Data Retrieved
+Output - User Data Retrieved
 ============================================================
 {
   "id": "abc-123-def-456",
@@ -98,7 +98,7 @@ Input: { userId: 'abc-123-def-456' }
   "bio": "Software engineer passionate about learning"
 }
 
-✅ User Service Tests Completed Successfully!
+User Service Tests Completed Successfully!
 ```
 
 ## Key Features
