@@ -1,9 +1,12 @@
+import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export function Header() {
   return (
-    <header className="flex items-center justify-between px-6 py-4 border-b">
-      <h1 className="text-3xl font-bold tracking-tight">CURIO</h1>
+    <header className="flex items-center justify-between px-6 py-2 border-b">
+      <Link href="/home" className="text-4xl font-bold tracking-tight text-primary hover:opacity-80 transition-opacity">
+        curio
+      </Link>
       <div className="flex items-center gap-3">
         <span className="text-base font-medium text-foreground">Krishin Parikh</span>
         <Avatar className="h-12 w-12">

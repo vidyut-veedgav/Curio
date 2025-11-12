@@ -9,7 +9,9 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { User, Pencil } from "lucide-react"
+import { Header } from "@/components/Header"
+import { User, Pencil, LogOut, Camera } from "lucide-react"
+import { signOut } from "next-auth/react"
 
 type ProfilePayload = {
   id: string
@@ -52,6 +54,7 @@ export default function ProfilePage() {
   const [email, setEmail] = useState("")
   const [bio, setBio] = useState("")
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false)
 
   const loadProfile = useCallback(async () => {
     setIsLoadingProfile(true)
@@ -90,6 +93,38 @@ export default function ProfilePage() {
       loadProfile()
     }
   }, [status, router, loadProfile])
+
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    // Validate file type
+    if (!file.type.startsWith("image/")) {
+      setErrorMessage("Please select an image file")
+      return
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      setErrorMessage("Image size must be less than 5MB")
+      return
+    }
+
+    setIsUploadingAvatar(true)
+    setErrorMessage(null)
+
+    try {
+      // For now, just create a local preview URL
+      // In production, you'd upload to a service like Cloudinary or S3
+      const previewUrl = URL.createObjectURL(file)
+      setAvatarUrl(previewUrl)
+      setSuccessMessage("Avatar updated (preview only)")
+    } catch (error) {
+      setErrorMessage("Failed to upload avatar")
+    } finally {
+      setIsUploadingAvatar(false)
+    }
+  }
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -143,96 +178,140 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
-      <main className="flex-1 container mx-auto px-[var(--spacing-md)] py-[var(--spacing-xl)]">
-        <div className="max-w-[var(--container-md)] mx-auto space-y-[var(--gap-lg)]">
-          {/* Header */}
-          <div className="flex items-center justify-between">
-            <h1 className="text-3xl md:text-4xl font-bold tracking-tight">My Profile</h1>
-            {!isEditing && (
-              <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
-                <Pencil className="h-4 w-4 mr-2" />
-                Edit
-              </Button>
-            )}
+    <div className="min-h-screen bg-background">
+      <Header />
+      <div className="container mx-auto max-w-5xl px-4 py-12 sm:px-6 lg:px-8">
+        {/* Edit Button - Outside Card */}
+        <div className="mb-4 flex items-center justify-end">
+          {!isEditing && (
+            <Button variant="outline" onClick={() => setIsEditing(true)}>
+              <Pencil className="mr-2 h-4 w-4" />
+              Edit
+            </Button>
+          )}
+        </div>
+
+        {/* Alerts */}
+        {errorMessage && (
+          <div className="mb-6 rounded-lg border border-destructive/50 bg-destructive/10 p-4">
+            <p className="text-sm font-medium text-destructive">{errorMessage}</p>
           </div>
+        )}
 
-          {errorMessage && (
-            <div className="rounded-md border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-              {errorMessage}
-            </div>
-          )}
+        {!errorMessage && successMessage && (
+          <div className="mb-6 rounded-lg border border-emerald-500/50 bg-emerald-500/10 p-4">
+            <p className="text-sm font-medium text-emerald-700 dark:text-emerald-400">{successMessage}</p>
+          </div>
+        )}
 
-          {!errorMessage && successMessage && (
-            <div className="rounded-md border border-emerald-500/40 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-600">
-              {successMessage}
-            </div>
-          )}
+        {/* Profile Card */}
+        <div className="rounded-xl border bg-card shadow-sm">
+          <form onSubmit={handleSave}>
+            <div className="px-6 py-8">
+              <div className="flex items-start gap-8">
+                {/* Avatar */}
+                <div className="relative shrink-0">
+                  <Avatar className="h-16 w-16 border-2 border-border">
+                    <AvatarImage src={avatarUrl || "/placeholder-user.jpg"} alt="Profile" />
+                    <AvatarFallback className="bg-primary/10 text-primary">
+                      <User className="h-8 w-8" />
+                    </AvatarFallback>
+                  </Avatar>
+                  {isEditing && (
+                    <label
+                      htmlFor="avatar-upload"
+                      className="absolute -bottom-1 -right-1 flex h-7 w-7 cursor-pointer items-center justify-center rounded-full border-2 border-background bg-primary text-primary-foreground transition-colors hover:bg-primary/90"
+                    >
+                      <Camera className="h-4 w-4" />
+                      <input
+                        id="avatar-upload"
+                        type="file"
+                        accept="image/*"
+                        onChange={handleAvatarChange}
+                        disabled={isUploadingAvatar}
+                        className="sr-only"
+                      />
+                    </label>
+                  )}
+                </div>
 
-          <form onSubmit={handleSave} className="space-y-[var(--gap-lg)]">
-            {/* Avatar */}
-            <div className="flex justify-center">
-              <div className="relative">
-                <Avatar className="h-32 w-32">
-                  <AvatarImage src={avatarUrl || "/placeholder-user.jpg"} alt="Profile" />
-                  <AvatarFallback className="bg-primary/10 text-primary text-3xl">
-                    <User className="h-16 w-16" />
-                  </AvatarFallback>
-                </Avatar>
+                {/* Form Fields */}
+                <div className="flex-1 space-y-6">
+                  {/* Name Fields */}
+                  <div className="grid gap-6 sm:grid-cols-2">
+                    <div className="space-y-2">
+                      <Label htmlFor="firstName" className="text-sm font-medium">
+                        First name
+                      </Label>
+                      <Input
+                        id="firstName"
+                        value={firstName}
+                        onChange={(e) => setFirstName(e.target.value)}
+                        disabled={!isEditing}
+                        className={!isEditing ? "border-muted bg-muted/50" : ""}
+                        placeholder="Enter first name"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="lastName" className="text-sm font-medium">
+                        Last name
+                      </Label>
+                      <Input
+                        id="lastName"
+                        value={lastName}
+                        onChange={(e) => setLastName(e.target.value)}
+                        disabled={!isEditing}
+                        className={!isEditing ? "border-muted bg-muted/50" : ""}
+                        placeholder="Enter last name"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Email Field */}
+                  <div className="space-y-2">
+                    <Label htmlFor="email" className="text-sm font-medium">
+                      Email address
+                    </Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      value={email}
+                      disabled
+                      className="border-muted bg-muted/50"
+                    />
+                    <p className="text-xs text-muted-foreground">Email address cannot be changed</p>
+                  </div>
+
+                  {/* Bio Field */}
+                  <div className="space-y-2">
+                    <Label htmlFor="bio" className="text-sm font-medium">
+                      Bio
+                    </Label>
+                    <Textarea
+                      id="bio"
+                      value={bio}
+                      onChange={(e) => setBio(e.target.value)}
+                      disabled={!isEditing}
+                      className={`min-h-[120px] resize-none ${!isEditing ? "border-muted bg-muted/50" : ""}`}
+                      placeholder="Tell us a bit about yourself..."
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Brief description for your profile. Max 500 characters.
+                    </p>
+                  </div>
+                </div>
               </div>
-            </div>
-
-            {/* Form Fields */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-[var(--gap-md)]">
-              <div className="space-y-[var(--spacing-sm)]">
-                <Label htmlFor="firstName">First name</Label>
-                <Input
-                  id="firstName"
-                  value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
-                  disabled={!isEditing}
-                  className={!isEditing ? "bg-muted" : ""}
-                />
-              </div>
-              <div className="space-y-[var(--spacing-sm)]">
-                <Label htmlFor="lastName">Last name</Label>
-                <Input
-                  id="lastName"
-                  value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
-                  disabled={!isEditing}
-                  className={!isEditing ? "bg-muted" : ""}
-                />
-              </div>
-            </div>
-
-            <div className="space-y-[var(--spacing-sm)]">
-              <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" value={email} disabled className="bg-muted" />
-            </div>
-
-            <div className="space-y-[var(--spacing-sm)]">
-              <Label htmlFor="bio">Bio</Label>
-              <Textarea
-                id="bio"
-                value={bio}
-                onChange={(e) => setBio(e.target.value)}
-                disabled={!isEditing}
-                className={`min-h-[120px] resize-none ${!isEditing ? "bg-muted" : ""}`}
-                placeholder="Tell us about yourself..."
-              />
             </div>
 
             {/* Action Buttons */}
             {isEditing && (
-              <div className="flex gap-[var(--gap-sm)]">
-                <Button type="submit" className="flex-1" disabled={isSaving}>
-                  {isSaving ? "Saving..." : "Save Changes"}
+              <div className="flex gap-3 border-t bg-muted/50 px-6 py-4">
+                <Button type="submit" disabled={isSaving} className="flex-1 sm:flex-initial">
+                  {isSaving ? "Saving..." : "Save changes"}
                 </Button>
                 <Button
                   type="button"
                   variant="outline"
-                  className="flex-1 bg-transparent"
                   onClick={() => {
                     setIsEditing(false)
                     setSuccessMessage(null)
@@ -240,6 +319,7 @@ export default function ProfilePage() {
                     loadProfile()
                   }}
                   disabled={isSaving}
+                  className="flex-1 sm:flex-initial"
                 >
                   Cancel
                 </Button>
@@ -247,7 +327,19 @@ export default function ProfilePage() {
             )}
           </form>
         </div>
-      </main>
+
+        {/* Sign Out Button */}
+        <div className="mt-6">
+          <Button
+            variant="outline"
+            onClick={() => signOut({ callbackUrl: "/login" })}
+            className="w-full"
+          >
+            <LogOut className="mr-2 h-4 w-4" />
+            Sign out
+          </Button>
+        </div>
+      </div>
     </div>
   )
 }
