@@ -16,20 +16,20 @@ import { prisma } from '@/lib/db';
 // Helper function to print formatted output
 function printResult(label: string, data: any) {
   console.log(`\n${'='.repeat(60)}`);
-  console.log(`🔹 ${label}`);
+  console.log(`${label}`);
   console.log('='.repeat(60));
   console.log(JSON.stringify(data, null, 2));
 }
 
 function printError(label: string, error: any) {
   console.log(`\n${'='.repeat(60)}`);
-  console.log(`❌ ${label}`);
+  console.log(`${label}`);
   console.log('='.repeat(60));
   console.log(`Error: ${error.message}`);
 }
 
 async function testModuleService() {
-  console.log('🧪 Testing Module Service Methods\n');
+  console.log('Testing Module Service Methods\n');
 
   try {
     // Get a sample session from the database
@@ -42,15 +42,15 @@ async function testModuleService() {
     });
 
     if (!sampleSession || sampleSession.modules.length === 0) {
-      console.log('⚠️  No sessions with modules found in database. Please run: npm run seed');
+      console.log('WARNING: No sessions with modules found in database. Please run: npm run seed');
       return;
     }
 
     const sessionId = sampleSession.id;
     const moduleId = sampleSession.modules[0].id;
 
-    console.log(`📌 Using session ID: ${sessionId}`);
-    console.log(`📌 Using module ID: ${moduleId}\n`);
+    console.log(`Using session ID: ${sessionId}`);
+    console.log(`Using module ID: ${moduleId}\n`);
 
     // Test 1: getModules() - Get all modules for a session
     console.log('TEST 1: getModules() - Get All Modules for Session');
@@ -86,7 +86,7 @@ async function testModuleService() {
         completedModules: result.module.learningSession.modules.filter((m) => m.isComplete).length,
       });
     } else {
-      console.log('\n⚠️  TEST 4 SKIPPED: All modules are already complete');
+      console.log('\nWARNING: TEST 4 SKIPPED: All modules are already complete');
     }
 
     // Test 5: markModuleComplete() - Complete all modules to trigger session completion
@@ -98,7 +98,7 @@ async function testModuleService() {
 
     for (const module of allModules) {
       if (!module.isComplete) {
-        console.log(`  ⏳ Completing: ${module.name}`);
+        console.log(`  Completing: ${module.name}`);
         sessionCompleteResult = await markModuleComplete(module.id);
       }
     }
@@ -109,11 +109,11 @@ async function testModuleService() {
         lastModuleName: sessionCompleteResult.module.name,
         totalModules: sessionCompleteResult.module.learningSession.modules.length,
         message: sessionCompleteResult.sessionComplete
-          ? '🎉 Session completed! All modules are done.'
+          ? 'Session completed! All modules are done.'
           : 'Session still has incomplete modules',
       });
     } else {
-      console.log('  ℹ️  All modules were already complete');
+      console.log('  INFO: All modules were already complete');
     }
 
     // Test 6: getModuleById() - Non-existent module (should fail)
@@ -151,7 +151,7 @@ async function testModuleService() {
     }
 
     console.log('\n' + '='.repeat(60));
-    console.log('✅ Module Service Tests Completed Successfully!');
+    console.log('Module Service Tests Completed Successfully!');
     console.log('='.repeat(60));
 
   } catch (error: any) {
@@ -165,10 +165,10 @@ async function testModuleService() {
 // Run tests
 testModuleService()
   .then(() => {
-    console.log('\n✅ All tests finished\n');
+    console.log('\nAll tests finished\n');
     process.exit(0);
   })
   .catch((error) => {
-    console.error('\n❌ Test suite failed:', error);
+    console.error('\nTest suite failed:', error);
     process.exit(1);
   });

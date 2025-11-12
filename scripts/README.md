@@ -105,15 +105,15 @@ All scripts output:
 ## Example Output
 
 ```
-🧪 Testing User Service Methods
+Testing User Service Methods
 
-📌 Using sample user ID: 123e4567-e89b-12d3-a456-426614174000
+Using sample user ID: 123e4567-e89b-12d3-a456-426614174000
 
 TEST 1: getUserData()
 Input: { userId: '123e4567-e89b-12d3-a456-426614174000' }
 
 ============================================================
-🔹 Output - User Data Retrieved
+Output - User Data Retrieved
 ============================================================
 {
   "id": "123e4567-e89b-12d3-a456-426614174000",
