@@ -15,7 +15,7 @@ import { prisma } from '@/lib/db';
 // Helper function to print formatted output
 function printResult(label: string, data: any) {
   console.log(`\n${'='.repeat(60)}`);
-  console.log(`🔹 ${label}`);
+  console.log(`${label}`);
   console.log('='.repeat(60));
   console.log(JSON.stringify(data, null, 2));
 }
@@ -61,8 +61,8 @@ async function testSessionService() {
     console.log('\nTEST 3: createLearningSession() - Short Beginner Session');
     const shortSessionInput = {
       userId,
-      topic: 'Python Basics',
-      description: 'Learn fundamental Python programming concepts',
+      topic: 'Things only Women would know',
+      description: '',
       length: 'short' as const,
       complexity: 'beginner' as const,
     };
@@ -88,7 +88,7 @@ async function testSessionService() {
       complexity: 'intermediate' as const,
     };
     console.log('Input:', mediumSessionInput);
-    console.log('⏳ Calling OpenAI API to generate modules...');
+    console.log('Calling OpenAI API to generate modules...');
 
     const startTime2 = Date.now();
     const mediumSession = await createLearningSession(mediumSessionInput);

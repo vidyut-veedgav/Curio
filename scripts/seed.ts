@@ -9,18 +9,18 @@ import { prisma } from '@/lib/db';
 import { ChatMessageAuthor } from '@prisma/client';
 
 async function main() {
-  console.log('🌱 Starting database seed...\n');
+  console.log('Starting database seed...\n');
 
   // Clean existing data (optional - comment out if you want to keep existing data)
-  console.log('🧹 Cleaning existing data...');
+  console.log('Cleaning existing data...');
   await prisma.chatMessage.deleteMany();
   await prisma.module.deleteMany();
   await prisma.learningSession.deleteMany();
   await prisma.user.deleteMany();
-  console.log('✅ Cleaned existing data\n');
+  console.log('Cleaned existing data\n');
 
   // Create test users
-  console.log('👤 Creating users...');
+  console.log('Creating users...');
   const user1 = await prisma.user.create({
     data: {
       firstName: 'Alice',
@@ -39,11 +39,11 @@ async function main() {
     },
   });
 
-  console.log(`✅ Created user: ${user1.firstName} ${user1.lastName} (ID: ${user1.id})`);
-  console.log(`✅ Created user: ${user2.firstName} ${user2.lastName} (ID: ${user2.id})\n`);
+  console.log(`Created user: ${user1.firstName} ${user1.lastName} (ID: ${user1.id})`);
+  console.log(`Created user: ${user2.firstName} ${user2.lastName} (ID: ${user2.id})\n`);
 
   // Create learning sessions
-  console.log('📚 Creating learning sessions...');
+  console.log('Creating learning sessions...');
   const session1 = await prisma.learningSession.create({
     data: {
       userId: user1.id,
@@ -128,15 +128,15 @@ async function main() {
     },
   });
 
-  console.log(`✅ Created session: ${session1.name} (ID: ${session1.id})`);
+  console.log(`Created session: ${session1.name} (ID: ${session1.id})`);
   console.log(`   - Modules: ${session1.modules.length}`);
-  console.log(`✅ Created session: ${session2.name} (ID: ${session2.id})`);
+  console.log(`Created session: ${session2.name} (ID: ${session2.id})`);
   console.log(`   - Modules: ${session2.modules.length}`);
-  console.log(`✅ Created session: ${session3.name} (ID: ${session3.id})`);
+  console.log(`Created session: ${session3.name} (ID: ${session3.id})`);
   console.log(`   - Modules: ${session3.modules.length}\n`);
 
   // Create chat messages for one of the modules
-  console.log('💬 Creating chat messages...');
+  console.log('Creating chat messages...');
   const firstModule = session1.modules[0];
 
   await prisma.chatMessage.createMany({
@@ -168,17 +168,17 @@ async function main() {
     ],
   });
 
-  console.log(`✅ Created 4 chat messages for module: ${firstModule.name}\n`);
+  console.log(`Created 4 chat messages for module: ${firstModule.name}\n`);
 
   // Summary
-  console.log('📊 Seed Summary:');
+  console.log('Seed Summary:');
   console.log('================');
   console.log(`Users created: 2`);
   console.log(`Sessions created: 3`);
   console.log(`Modules created: ${session1.modules.length + session2.modules.length + session3.modules.length}`);
   console.log(`Chat messages created: 4\n`);
 
-  console.log('🎯 Test Data IDs (use these in your test scripts):');
+  console.log('Test Data IDs (use these in your test scripts):');
   console.log('==================================================');
   console.log(`User 1 ID: ${user1.id}`);
   console.log(`User 2 ID: ${user2.id}`);
@@ -186,12 +186,12 @@ async function main() {
   console.log(`Session 2 ID: ${session2.id}`);
   console.log(`Session 3 ID: ${session3.id}`);
   console.log(`Module 1 ID: ${firstModule.id}`);
-  console.log('\n✅ Seed completed successfully!');
+  console.log('\nSeed completed successfully!');
 }
 
 main()
   .catch((e) => {
-    console.error('❌ Error seeding database:', e);
+    console.error('Error seeding database:', e);
     process.exit(1);
   })
   .finally(async () => {
