@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Header } from "../../components/Header";
 import { SessionCard } from "./components/SessionCard";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Menu, X } from "lucide-react";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
 
 const mockSessions = [
   { id: 1, title: "Operating Systems", progress: 34, modulesCompleted: 7, totalModules: 20 },
@@ -17,6 +18,20 @@ const mockSessions = [
 ];
 
 export default function HomePage() {
+  const { data: user } = useCurrentUser();
+  const firstName = useMemo(() => {
+    if (user?.name) {
+      const [first] = user.name.trim().split(/\s+/);
+      return first || null;
+    }
+
+    if (user?.email) {
+      return user.email.split("@")[0];
+    }
+
+    return null;
+  }, [user]);
+
   const [topic, setTopic] = useState("");
   const [length, setLength] = useState("medium");
   const [complexity, setComplexity] = useState("beginner");
@@ -72,7 +87,7 @@ export default function HomePage() {
           <main className="flex-1 flex justify-center px-6 pt-24">
             <div className="w-full max-w-3xl flex flex-col items-center space-y-10">
               <h1 className="text-5xl font-semibold text-center text-primary max-w-2xl">
-                What do you want to learn today, Krishin?
+                {firstName ? `What do you want to learn today, ${firstName}?` : "What do you want to learn today?"}
               </h1>
 
               <Textarea
