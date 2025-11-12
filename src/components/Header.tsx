@@ -4,7 +4,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 export function Header() {
   return (
     <header className="flex items-center justify-between px-6 py-2 border-b">
-      <Link href="/home" className="text-4xl font-bold tracking-tight hover:opacity-80 transition-opacity">
+      <Link href="/home" className="text-4xl font-bold tracking-tight text-primary hover:opacity-80 transition-opacity">
         curio
       </Link>
       <div className="flex items-center gap-3">

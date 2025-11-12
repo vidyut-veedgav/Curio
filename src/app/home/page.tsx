@@ -71,7 +71,7 @@ export default function HomePage() {
 
           <main className="flex-1 flex justify-center px-6 pt-24">
             <div className="w-full max-w-3xl flex flex-col items-center space-y-10">
-              <h1 className="text-4xl font-semibold text-center">
+              <h1 className="text-5xl font-semibold text-center text-primary max-w-2xl">
                 What do you want to learn today, Krishin?
               </h1>
 
