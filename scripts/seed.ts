@@ -23,8 +23,7 @@ async function main() {
   console.log('Creating users...');
   const user1 = await prisma.user.create({
     data: {
-      firstName: 'Alice',
-      lastName: 'Johnson',
+      name: 'Alice Johnson',
       email: 'alice@example.com',
       bio: 'Software engineer passionate about learning new technologies',
     },
@@ -32,15 +31,14 @@ async function main() {
 
   const user2 = await prisma.user.create({
     data: {
-      firstName: 'Bob',
-      lastName: 'Smith',
+      name: 'Bob Smith',
       email: 'bob@example.com',
       bio: 'Data scientist exploring AI and machine learning',
     },
   });
 
-  console.log(`Created user: ${user1.firstName} ${user1.lastName} (ID: ${user1.id})`);
-  console.log(`Created user: ${user2.firstName} ${user2.lastName} (ID: ${user2.id})\n`);
+  console.log(`Created user: ${user1.name} (ID: ${user1.id})`);
+  console.log(`Created user: ${user2.name} (ID: ${user2.id})\n`);
 
   // Create learning sessions
   console.log('Creating learning sessions...');

@@ -3,9 +3,9 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { SessionTopicInput } from './components/SessionTopicInput';
+import { SessionLengthSelector } from './components/SessionLengthSelector';
+import { SessionComplexitySelector } from './components/SessionComplexitySelector';
 
 export default function CreateSessionPage() {
   const [topic, setTopic] = useState('');
@@ -27,75 +27,11 @@ export default function CreateSessionPage() {
             <CardTitle>Session Details</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
-            {/* Topic Text Field */}
-            <div className="space-y-2">
-              <Label htmlFor="topic">What do you want to learn?</Label>
-              <Textarea
-                id="topic"
-                placeholder="Describe the topic you'd like to learn about..."
-                value={topic}
-                onChange={(e) => setTopic(e.target.value)}
-                className="min-h-[150px] resize-none"
-              />
-            </div>
+            <SessionTopicInput value={topic} onChange={setTopic} />
 
-            {/* Session Length */}
-            <div className="space-y-3">
-              <Label>Session Length</Label>
-              <RadioGroup
-                value={length}
-                onValueChange={(value) => setLength(value as 'short' | 'medium' | 'long')}
-                className="flex gap-4"
-              >
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="short" id="short" />
-                  <Label htmlFor="short" className="font-normal cursor-pointer">
-                    Short
-                  </Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="medium" id="medium" />
-                  <Label htmlFor="medium" className="font-normal cursor-pointer">
-                    Medium
-                  </Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="long" id="long" />
-                  <Label htmlFor="long" className="font-normal cursor-pointer">
-                    Long
-                  </Label>
-                </div>
-              </RadioGroup>
-            </div>
+            <SessionLengthSelector value={length} onChange={setLength} />
 
-            {/* Complexity Level */}
-            <div className="space-y-3">
-              <Label>Complexity Level</Label>
-              <RadioGroup
-                value={complexity}
-                onValueChange={(value) => setComplexity(value as 'beginner' | 'intermediate' | 'advanced')}
-                className="flex gap-4"
-              >
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="beginner" id="beginner" />
-                  <Label htmlFor="beginner" className="font-normal cursor-pointer">
-                    Beginner
-                  </Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="intermediate" id="intermediate" />
-                  <Label htmlFor="intermediate" className="font-normal cursor-pointer">
-                    Intermediate
-                  </Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="advanced" id="advanced" />
-                  <Label htmlFor="advanced" className="font-normal cursor-pointer">
-                    Advanced
-                  </Label>
-                </div>
-              </RadioGroup>
-            </div>
+            <SessionComplexitySelector value={complexity} onChange={setComplexity} />
 
             {/* Create Button */}
             <div className="pt-4">
