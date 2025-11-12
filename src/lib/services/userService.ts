@@ -1,8 +1,7 @@
 import { prisma } from '@/lib/db';
 
 export interface UpdateUserDataInput {
-  firstName?: string;
-  lastName?: string;
+  name?: string;
   bio?: string;
 }
 
@@ -32,8 +31,7 @@ export async function setUserData(userId: string, data: UpdateUserDataInput) {
   return prisma.user.update({
     where: { id: userId },
     data: {
-      ...(data.firstName && { firstName: data.firstName }),
-      ...(data.lastName && { lastName: data.lastName }),
+      ...(data.name && { name: data.name }),
       ...(data.bio !== undefined && { bio: data.bio }),
     },
   });
@@ -45,8 +43,7 @@ export async function setUserData(userId: string, data: UpdateUserDataInput) {
  */
 export async function createUser(data: {
   email: string;
-  firstName: string;
-  lastName: string;
+  name?: string;
   bio?: string;
 }) {
   // Check if user already exists
