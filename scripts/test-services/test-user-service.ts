@@ -11,32 +11,32 @@ import { prisma } from '@/lib/db';
 // Helper function to print formatted output
 function printResult(label: string, data: any) {
   console.log(`\n${'='.repeat(60)}`);
-  console.log(`🔹 ${label}`);
+  console.log(`${label}`);
   console.log('='.repeat(60));
   console.log(JSON.stringify(data, null, 2));
 }
 
 function printError(label: string, error: any) {
   console.log(`\n${'='.repeat(60)}`);
-  console.log(`❌ ${label}`);
+  console.log(`${label}`);
   console.log('='.repeat(60));
   console.log(`Error: ${error.message}`);
 }
 
 async function testUserService() {
-  console.log('🧪 Testing User Service Methods\n');
+  console.log('Testing User Service Methods\n');
 
   try {
     // Get a sample user ID from the database
     const sampleUser = await prisma.user.findFirst();
 
     if (!sampleUser) {
-      console.log('⚠️  No users found in database. Please run: npm run seed');
+      console.log('WARNING: No users found in database. Please run: npm run seed');
       return;
     }
 
     const userId = sampleUser.id;
-    console.log(`📌 Using sample user ID: ${userId}\n`);
+    console.log(`Using sample user ID: ${userId}\n`);
 
     // Test 1: getUserData()
     console.log('TEST 1: getUserData()');
@@ -108,7 +108,7 @@ async function testUserService() {
     }
 
     console.log('\n' + '='.repeat(60));
-    console.log('✅ User Service Tests Completed Successfully!');
+    console.log('User Service Tests Completed Successfully!');
     console.log('='.repeat(60));
 
   } catch (error: any) {
@@ -122,10 +122,10 @@ async function testUserService() {
 // Run tests
 testUserService()
   .then(() => {
-    console.log('\n✅ All tests finished\n');
+    console.log('\nAll tests finished\n');
     process.exit(0);
   })
   .catch((error) => {
-    console.error('\n❌ Test suite failed:', error);
+    console.error('\nTest suite failed:', error);
     process.exit(1);
   });
