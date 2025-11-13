@@ -17,10 +17,10 @@ export default function LandingPage() {
       <div className="flex flex-col items-center justify-center px-4 sm:px-6 lg:px-8 min-h-[calc(100vh-80px)]">
         <div className="max-w-4xl text-center space-y-8">
           <h1 className="text-5xl sm:text-6xl md:text-7xl font-bold tracking-tight text-primary">
-            Learn anything with <span className="text-accent">AI-powered</span> personalization
+            Let <span className="text-accent">curio</span>sity guide your learning.
           </h1>
           <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto">
-            Don't confine yourself to a one-size-fits-all curriculum. Follow your curiosity while sticking to structured learning plans.
+            Create personalized courses on anything — powered by AI. Don't confine yourself to a one-size-fits-all curriculum.  
           </p>
           <Button
             onClick={() => signIn("google", { callbackUrl: "/home" })}
