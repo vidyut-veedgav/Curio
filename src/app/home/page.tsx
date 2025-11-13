@@ -38,7 +38,7 @@ export default function HomePage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <div className="h-screen bg-background flex flex-col overflow-hidden">
+    <div className="h-screen bg-gradient-to-b from-background via-accent/5 to-accent/20 flex flex-col overflow-hidden">
       <Header />
 
       <div className="flex flex-1 overflow-hidden relative">
