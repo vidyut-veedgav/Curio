@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { signOut } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -11,10 +11,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { useGetUser } from "@/hooks/useGetUser";
 
 export function Header() {
-  const { data: user, isLoading } = useCurrentUser();
+  const { data: session } = useSession();
+  const userId = session?.user?.id || "";
+  const { data: user, isLoading } = useGetUser(userId);
   const pathname = usePathname();
   const isProfilePage = pathname?.startsWith("/profile");
   const displayName = user?.name ?? user?.email ?? (isLoading ? "Loading..." : "Anonymous");

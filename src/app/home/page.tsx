@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useSession } from "next-auth/react";
 import { Header } from "../../components/Header";
 import { SessionCard } from "./components/SessionCard";
 import { Button } from "@/components/ui/button";
@@ -8,12 +9,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Menu, X } from "lucide-react";
-import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { useGetUser } from "@/hooks/useGetUser";
 import { useGetSessions } from "./hooks";
 
 export default function HomePage() {
-  const { data: user } = useCurrentUser();
-  const { data: sessions, isLoading: sessionsLoading } = useGetSessions(user?.id || "");
+  const { data: session } = useSession();
+  const userId = session?.user?.id || "";
+  const { data: user } = useGetUser(userId);
+  const { data: sessions, isLoading: sessionsLoading } = useGetSessions(userId);
 
   const firstName = useMemo(() => {
     if (user?.name) {
