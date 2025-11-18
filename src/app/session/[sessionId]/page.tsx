@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation';
-import { getSessionById } from '@/lib/services/sessionService';
+import { getSessionById } from '@/lib/actions/sessionService';
 import { SessionProgressBar } from './components/SessionProgressBar';
 import { SessionDescription } from './components/SessionDescription';
 import { ModuleList } from './components/ModuleList';

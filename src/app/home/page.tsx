@@ -9,16 +9,12 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Menu, X } from "lucide-react";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
-
-const mockSessions = [
-  { id: 1, title: "Operating Systems", progress: 34, modulesCompleted: 7, totalModules: 20 },
-  { id: 2, title: "Building Apps with AI", progress: 78, modulesCompleted: 14, totalModules: 18 },
-  { id: 3, title: "Woodworking from Scratch", progress: 50, modulesCompleted: 10, totalModules: 20 },
-  { id: 4, title: "Swedish Architecture", progress: 11, modulesCompleted: 2, totalModules: 18 },
-];
+import { useGetSessions } from "./hooks";
 
 export default function HomePage() {
   const { data: user } = useCurrentUser();
+  const { data: sessions, isLoading: sessionsLoading } = useGetSessions(user?.id || "");
+
   const firstName = useMemo(() => {
     if (user?.name) {
       const [first] = user.name.trim().split(/\s+/);
@@ -31,6 +27,24 @@ export default function HomePage() {
 
     return null;
   }, [user]);
+
+  const sessionData = useMemo(() => {
+    if (!sessions) return [];
+
+    return sessions.map(session => {
+      const totalModules = session.modules.length;
+      const modulesCompleted = session.modules.filter(m => m.isComplete).length;
+      const progress = totalModules > 0 ? Math.round((modulesCompleted / totalModules) * 100) : 0;
+
+      return {
+        id: session.id,
+        title: session.name,
+        progress,
+        modulesCompleted,
+        totalModules,
+      };
+    });
+  }, [sessions]);
 
   const [topic, setTopic] = useState("");
   const [length, setLength] = useState("medium");
@@ -60,15 +74,21 @@ export default function HomePage() {
               </Button>
             </div>
             <div className="space-y-4">
-              {mockSessions.map((session) => (
-                <SessionCard
-                  key={session.id}
-                  title={session.title}
-                  progress={session.progress}
-                  modulesCompleted={session.modulesCompleted}
-                  totalModules={session.totalModules}
-                />
-              ))}
+              {sessionsLoading ? (
+                <p className="text-muted-foreground text-center py-8">Loading sessions...</p>
+              ) : sessionData.length === 0 ? (
+                <p className="text-muted-foreground text-center py-8">No learning sessions yet. Create one to get started!</p>
+              ) : (
+                sessionData.map((session) => (
+                  <SessionCard
+                    key={session.id}
+                    title={session.title}
+                    progress={session.progress}
+                    modulesCompleted={session.modulesCompleted}
+                    totalModules={session.totalModules}
+                  />
+                ))
+              )}
             </div>
           </div>
         </aside>

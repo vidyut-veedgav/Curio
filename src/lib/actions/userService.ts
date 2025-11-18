@@ -1,3 +1,5 @@
+'use server'
+
 import { prisma } from '@/lib/db';
 
 export interface UpdateUserDataInput {
