@@ -11,21 +11,30 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useGetUser } from "@/hooks/useGetUser";
 
 export function Header() {
-  const { data: session } = useSession();
+  const { data: session, status: sessionStatus } = useSession();
   const userId = session?.user?.id || "";
-  const { data: user, isLoading } = useGetUser(userId);
+
+  const getUserQuery = useGetUser(userId);
   const pathname = usePathname();
   const isProfilePage = pathname?.startsWith("/profile");
-  const displayName = user?.name ?? user?.email ?? (isLoading ? "Loading..." : "Anonymous");
+  const isLoading = sessionStatus === "loading" || getUserQuery.isLoading;
 
-  const identity = (
+  const identity = isLoading ? (
     <>
-      <span className="text-base font-medium text-foreground">{displayName}</span>
+      <Skeleton className="h-6 w-32" />
+      <Skeleton className="h-12 w-12 rounded-full" />
+    </>
+  ) : (
+    <>
+      <span className="text-base font-medium text-foreground">
+        {getUserQuery.data?.name ?? getUserQuery.data?.email}
+      </span>
       <Avatar className="h-12 w-12">
-        <AvatarImage src={user?.image ?? undefined} alt={user?.name ?? "Current user avatar"} />
+        <AvatarImage src={getUserQuery.data?.image ?? undefined} alt={getUserQuery.data?.name ?? "Current user avatar"} />
         <AvatarFallback className="bg-muted">
           <svg
             className="h-6 w-6 text-muted-foreground"

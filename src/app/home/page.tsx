@@ -8,33 +8,37 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
+import { Spinner } from "@/components/ui/spinner";
 import { Menu, X } from "lucide-react";
 import { useGetUser } from "@/hooks/useGetUser";
 import { useGetSessions } from "./hooks";
 
 export default function HomePage() {
-  const { data: session } = useSession();
+
+  const { data: session, status: sessionStatus } = useSession();
+
   const userId = session?.user?.id || "";
-  const { data: user } = useGetUser(userId);
-  const { data: sessions, isLoading: sessionsLoading } = useGetSessions(userId);
+
+  const getUserQuery = useGetUser(userId);
+  const getSessionsQuery = useGetSessions(userId);
 
   const firstName = useMemo(() => {
-    if (user?.name) {
-      const [first] = user.name.trim().split(/\s+/);
+    if (getUserQuery.data?.name) {
+      const [first] = getUserQuery.data.name.trim().split(/\s+/);
       return first || null;
     }
 
-    if (user?.email) {
-      return user.email.split("@")[0];
+    if (getUserQuery.data?.email) {
+      return getUserQuery.data.email.split("@")[0];
     }
 
     return null;
-  }, [user]);
+  }, [getUserQuery.data]);
 
   const sessionData = useMemo(() => {
-    if (!sessions) return [];
+    if (!getSessionsQuery.data) return [];
 
-    return sessions.map(session => {
+    return getSessionsQuery.data.map(session => {
       const totalModules = session.modules.length;
       const modulesCompleted = session.modules.filter(m => m.isComplete).length;
       const progress = totalModules > 0 ? Math.round((modulesCompleted / totalModules) * 100) : 0;
@@ -47,12 +51,25 @@ export default function HomePage() {
         totalModules,
       };
     });
-  }, [sessions]);
+  }, [getSessionsQuery.data]);
 
   const [topic, setTopic] = useState("");
-  const [length, setLength] = useState("medium");
+  const [length, setLength] = useState("short");
   const [complexity, setComplexity] = useState("beginner");
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const isLoading = sessionStatus === "loading" || getUserQuery.isLoading;
+
+  if (isLoading) {
+    return (
+      <div className="h-screen bg-gradient-to-b from-background via-accent/5 to-accent/20 flex flex-col overflow-hidden">
+        <Header />
+        <div className="flex-1 flex items-center justify-center">
+          <Spinner className="size-8" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="h-screen bg-gradient-to-b from-background via-accent/5 to-accent/20 flex flex-col overflow-hidden">
@@ -77,7 +94,7 @@ export default function HomePage() {
               </Button>
             </div>
             <div className="space-y-4">
-              {sessionsLoading ? (
+              {getSessionsQuery.isLoading ? (
                 <p className="text-muted-foreground text-center py-8">Loading sessions...</p>
               ) : sessionData.length === 0 ? (
                 <p className="text-muted-foreground text-center py-8">No learning sessions yet. Create one to get started!</p>
