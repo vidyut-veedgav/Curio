@@ -1,8 +1,10 @@
 import { notFound } from 'next/navigation';
+import Link from 'next/link';
 import { getSessionById } from '@/lib/actions/sessionService';
 import { SessionProgressBar } from './components/SessionProgressBar';
 import { SessionDescription } from './components/SessionDescription';
 import { ModuleList } from './components/ModuleList';
+import { Header } from '@/components/Header';
 
 interface SessionPageProps {
   params: Promise<{
@@ -29,8 +31,17 @@ export default async function SessionPage({ params }: SessionPageProps) {
     'long';
 
   return (
-    <div className="min-h-screen bg-background p-8">
-      <div className="mx-auto max-w-7xl">
+    <div className="min-h-screen bg-background">
+      <Header />
+      <div className="mx-auto max-w-7xl p-8">
+        {/* Back Button */}
+        <Link href="/home" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-6">
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+          <span>Back</span>
+        </Link>
+
         {/* Header with Title and Progress */}
         <div className="mb-8">
           <h1 className="text-4xl font-bold mb-4">{session.name}</h1>
@@ -42,7 +53,7 @@ export default async function SessionPage({ params }: SessionPageProps) {
         </div>
 
         {/* Two Column Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-14">
           {/* Left Side - Session Description */}
           <div>
             <SessionDescription

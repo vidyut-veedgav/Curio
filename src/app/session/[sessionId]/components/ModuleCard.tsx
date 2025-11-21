@@ -19,9 +19,9 @@ export function ModuleCard({
 }: ModuleCardProps) {
   return (
     <Link href={`/session/${sessionId}/module/${moduleId}`}>
-      <div className="group relative border rounded-lg p-4 hover:border-primary transition-colors cursor-pointer">
+      <div className="group relative border rounded-lg p-4 hover:border-primary transition-colors cursor-pointer mb-4">
         {/* Module Number Badge */}
-        <div className="absolute -left-3 -top-3 w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center font-bold text-sm">
+        <div className={`absolute -left-3 -top-3 w-8 h-8 ${isComplete ? 'bg-green-600 dark:bg-green-500' : 'bg-primary'} text-primary-foreground rounded-full flex items-center justify-center font-bold text-sm`}>
           {moduleOrder + 1}
         </div>
 
@@ -36,26 +36,6 @@ export function ModuleCard({
                 {moduleOverview}
               </p>
             </div>
-
-            {/* Completion Status */}
-            {isComplete && (
-              <div className="flex-shrink-0">
-                <div className="flex items-center gap-1 text-green-600 dark:text-green-400">
-                  <svg
-                    className="w-5 h-5"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                  <span className="text-xs font-medium">Complete</span>
-                </div>
-              </div>
-            )}
           </div>
         </div>
       </div>

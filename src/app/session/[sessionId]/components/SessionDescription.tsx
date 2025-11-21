@@ -1,5 +1,3 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-
 interface SessionDescriptionProps {
   description: string;
   originalPrompt?: string | null;
@@ -16,11 +14,9 @@ export function SessionDescription({
   inferredLength,
 }: SessionDescriptionProps) {
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>About This Session</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
+    <div>
+      {/* <h2 className="text-xl font-semibold mb-4">About This Session</h2> */}
+      <div className="space-y-4">
         <div>
           <h3 className="font-semibold text-sm text-muted-foreground mb-2">Description</h3>
           <p className="text-base leading-relaxed">{description}</p>
@@ -43,7 +39,7 @@ export function SessionDescription({
             <span className="font-medium">{totalModules}</span>
           </div>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

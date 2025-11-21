@@ -65,7 +65,7 @@ export default function HomePage() {
       <div className="h-screen bg-gradient-to-b from-background via-accent/5 to-accent/20 flex flex-col overflow-hidden">
         <Header />
         <div className="flex-1 flex items-center justify-center">
-          <Spinner className="size-8" />
+          <Spinner className="size-12" />
         </div>
       </div>
     );
@@ -102,6 +102,7 @@ export default function HomePage() {
                 sessionData.map((session) => (
                   <SessionCard
                     key={session.id}
+                    id={session.id}
                     title={session.title}
                     progress={session.progress}
                     modulesCompleted={session.modulesCompleted}
@@ -134,7 +135,7 @@ export default function HomePage() {
                 placeholder="Ask Curio to teach you anything..."
                 value={topic}
                 onChange={(e) => setTopic(e.target.value)}
-                className="w-full max-w-2xl h-32 !text-lg resize-none rounded-2xl px-4 py-4"
+                className="w-full max-w-2xl h-32 !text-lg resize-none rounded-2xl px-4 py-4 shadow-lg focus-visible:ring-0 focus-visible:ring-offset-0"
               />
 
               <RadioGroup value={length} onValueChange={setLength} className="flex gap-8">
