@@ -134,7 +134,7 @@ export default function ModulePage({ params }: ModulePageProps) {
           <div className="relative">
             <Textarea
               placeholder="Ask a follow-up question..."
-              className="w-full !text-base resize-none rounded-xl px-5 py-3 pr-12 shadow-md focus-visible:ring-0 focus-visible:ring-offset-0 min-h-[72px] max-h-[200px]"
+              className="w-full !text-base resize-none rounded-xl px-5 py-3 pr-12 shadow-sm focus-visible:ring-0 focus-visible:ring-offset-0 min-h-[72px] max-h-[200px]"
               rows={1}
             />
             <Button

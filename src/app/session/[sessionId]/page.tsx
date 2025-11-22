@@ -53,14 +53,12 @@ export default async function SessionPage({ params }: SessionPageProps) {
         </div>
 
         {/* Two Column Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-14">
+        <div className="grid grid-cols-1 lg:grid-cols-2">
           {/* Left Side - Session Description */}
-          <div>
+          <div className="pr-24">
             <SessionDescription
               description={session.description}
-              originalPrompt={session.originalPrompt}
               sessionName={session.name}
-              totalModules={totalModules}
               inferredLength={inferredLength}
             />
           </div>
