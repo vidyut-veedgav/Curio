@@ -25,19 +25,19 @@ export function Header() {
 
   const identity = isLoading ? (
     <>
-      <Skeleton className="h-6 w-32" />
-      <Skeleton className="h-12 w-12 rounded-full" />
+      <Skeleton className="h-4 w-24" />
+      <Skeleton className="h-8 w-8 rounded-md" />
     </>
   ) : (
     <>
-      <span className="text-base font-medium text-foreground">
+      <span className="text-sm font-medium text-foreground">
         {getUserQuery.data?.name ?? getUserQuery.data?.email}
       </span>
-      <Avatar className="h-12 w-12">
+      <Avatar className="h-8 w-8 rounded-md">
         <AvatarImage src={getUserQuery.data?.image ?? undefined} alt={getUserQuery.data?.name ?? "Current user avatar"} />
         <AvatarFallback className="bg-muted">
           <svg
-            className="h-6 w-6 text-muted-foreground"
+            className="h-4 w-4 text-muted-foreground"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -59,8 +59,8 @@ export function Header() {
   };
 
   return (
-    <header className="flex items-center justify-between px-6 py-2 border-b">
-      <Link href="/home" className="text-4xl font-bold tracking-tight text-primary hover:opacity-80 transition-opacity">
+    <header className="flex items-center justify-between px-6 py-1.5 border-b">
+      <Link href="/home" className="text-2xl font-bold tracking-tight text-primary hover:opacity-80 transition-opacity">
         curio
       </Link>
       {isProfilePage ? (

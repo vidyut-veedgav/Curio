@@ -3,12 +3,12 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const chatMessageVariants = cva(
-  "rounded-2xl px-4 py-3 max-w-[85%] break-words",
+  "break-words",
   {
     variants: {
       variant: {
-        user: "bg-muted ml-auto",
-        ai: "bg-background border border-border",
+        user: "bg-muted rounded-2xl px-4 py-3 inline-block",
+        ai: "w-full",
       },
     },
     defaultVariants: {
@@ -29,10 +29,7 @@ const ChatMessage = React.forwardRef<HTMLDivElement, ChatMessageProps>(
     return (
       <div
         ref={ref}
-        className={cn(
-          "flex w-full",
-          author === "User" ? "justify-end" : "justify-start"
-        )}
+        className="flex w-full justify-start"
         {...props}
       >
         <div
