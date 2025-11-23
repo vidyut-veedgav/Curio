@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { getUserData, setUserData, createUser } from '../userService';
+import { getUserData, setUserData, createUser } from '../userActions';
 import { prisma } from '@/lib/db';
 
 // Mock Prisma client

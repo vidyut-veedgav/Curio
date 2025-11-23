@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { getUserData } from "@/lib/actions/userService";
+import { getUserData } from "@/lib/actions/userActions";
 
 export function useGetUser(userId: string) {
   return useQuery({

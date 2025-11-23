@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { getMessages, sendMessage, Message } from '../chatService';
+import { getMessages, sendMessage, Message } from '../chatActions';
 import { prisma } from '@/lib/db';
 import { openai } from '@/lib/ai/providers/openai';
 

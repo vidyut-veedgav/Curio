@@ -1,7 +1,6 @@
 // src/lib/websocket/handlers.ts
 import { Socket } from 'socket.io';
-import { Message, getMessages, sendMessage } from '@/lib/actions/chatService';
-import { openAIStream } from '@/lib/ai/openai-stream';
+import { Message, getMessages, sendMessage } from '@/lib/actions/chatActions';
 
 export type Handler = (socket: Socket, data: any) => Promise<void>;
 

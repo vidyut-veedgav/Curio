@@ -9,7 +9,7 @@ import {
   createLearningSession,
   getSessions,
   getSessionById,
-} from '@/lib/actions/sessionService';
+} from '@/lib/actions/sessionActions';
 import { prisma } from '@/lib/db';
 
 // Helper function to print formatted output

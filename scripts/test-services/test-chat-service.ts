@@ -5,7 +5,7 @@
  * Run with: npm run test:chat
  */
 
-import { getMessages, sendMessage, Message } from '@/lib/actions/chatService';
+import { getMessages, sendMessage, Message } from '@/lib/actions/chatActions';
 import { prisma } from '@/lib/db';
 
 // Helper function to print formatted output

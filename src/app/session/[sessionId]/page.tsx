@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import { getSessionById } from '@/lib/actions/sessionService';
+import { getSessionById } from '@/lib/actions/sessionActions';
 import { SessionProgressBar } from './components/SessionProgressBar';
 import { SessionDescription } from './components/SessionDescription';
 import { ModuleList } from './components/ModuleList';

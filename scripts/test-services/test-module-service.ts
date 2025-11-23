@@ -10,7 +10,7 @@ import {
   getModuleById,
   markModuleComplete,
   getModuleTitle,
-} from '@/lib/actions/moduleService';
+} from '@/lib/actions/moduleActions';
 import { prisma } from '@/lib/db';
 
 // Helper function to print formatted output

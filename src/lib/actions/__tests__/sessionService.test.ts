@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { createLearningSession, getSessions, getSessionById } from '../sessionService';
+import { createLearningSession, getSessions, getSessionById } from '../sessionActions';
 import { prisma } from '@/lib/db';
 import { openai } from '@/lib/ai/providers/openai';
 

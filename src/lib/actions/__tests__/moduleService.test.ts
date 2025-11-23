@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { getModules, getModuleById, markModuleComplete, getModuleTitle } from '../moduleService';
+import { getModules, getModuleById, markModuleComplete, getModuleTitle } from '../moduleActions';
 import { prisma } from '@/lib/db';
 
 // Mock Prisma client
