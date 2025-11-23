@@ -21,11 +21,11 @@ export interface ChatMessageProps
   extends React.HTMLAttributes<HTMLDivElement>,
     VariantProps<typeof chatMessageVariants> {
   content: string;
-  author: "User" | "AI";
+  role: "user" | "assistant";
 }
 
 const ChatMessage = React.forwardRef<HTMLDivElement, ChatMessageProps>(
-  ({ className, variant, content, author, ...props }, ref) => {
+  ({ className, variant, content, role, ...props }, ref) => {
     return (
       <div
         ref={ref}
@@ -34,7 +34,7 @@ const ChatMessage = React.forwardRef<HTMLDivElement, ChatMessageProps>(
       >
         <div
           className={cn(
-            chatMessageVariants({ variant: author === "User" ? "user" : "ai" }),
+            chatMessageVariants({ variant: role === "user" ? "user" : "ai" }),
             className
           )}
         >

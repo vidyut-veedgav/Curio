@@ -1,7 +1,9 @@
 'use server'
 
 import { prisma } from '@/lib/db';
-import { openai } from '@/lib/openai';
+import { OpenAIProvider } from '@/lib/ai/providers/openai';
+
+const openai = new OpenAIProvider('gpt-4o-mini');
 
 export interface CreateSessionInput {
   userId: string;
@@ -121,9 +123,8 @@ async function generateModulesWithAI(
   const moduleCount = length === 'short' ? 3 : length === 'medium' ? 5 : 7;
 
   try {
-    const completion = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
-      messages: [
+    const responseContent = await openai.complete(
+      [
         {
           role: 'system',
           content: `You are an expert curriculum designer. Create a structured learning path with clear modules.
@@ -151,11 +152,11 @@ Generate ${moduleCount} modules that progressively build knowledge.
 Ensure each module has a clear focus and measurable outcomes.`,
         },
       ],
-      response_format: { type: 'json_object' },
-      temperature: 0.7,
-    });
+      {
+        temperature: 0.7,
+      }
+    );
 
-    const responseContent = completion.choices[0]?.message?.content;
     if (!responseContent) {
       throw new Error('Empty response from OpenAI');
     }

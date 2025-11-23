@@ -14,7 +14,7 @@ const mockMessages = [
   {
     id: "1",
     content: "Explain how a SAFE works in VC",
-    author: "User" as const,
+    role: "user" as const,
   },
   {
     id: "2",
@@ -22,17 +22,17 @@ const mockMessages = [
 
 Basic Concept
 A SAFE is essentially a contract where an investor gives money to a startup now, in exchange for the right to receive equity later when a specific triggering event occurs (usually a priced funding round).`,
-    author: "AI" as const,
+    role: "assistant" as const,
   },
   {
     id: "3",
     content: "Wow that is so cool! I'm super interested in SAFEs. When I grow up I want to become a venture capitalist! I love the idea of investing in the future.",
-    author: "User" as const,
+    role: "user" as const,
   },
   {
     id: "4",
     content: "What are the main advantages of using a SAFE versus a convertible note?",
-    author: "User" as const,
+    role: "user" as const,
   },
   {
     id: "5",
@@ -41,22 +41,22 @@ A SAFE is essentially a contract where an investor gives money to a startup now,
 - No maturity date, removing pressure to convert within a set time.
 - Docs are simpler and usually more friendly to founders (and often investors too).
 However, some investors may still prefer notes for certain protections.`,
-    author: "AI" as const,
+    role: "assistant" as const,
   },
   {
     id: "6",
     content: "Can SAFEs be used in later-stage funding rounds too?",
-    author: "User" as const,
+    role: "user" as const,
   },
   {
     id: "7",
     content: `While SAFEs are most common in early-stage rounds (pre-seed and seed), they can theoretically be used at any stage. However, later stage investors generally prefer priced equity rounds for structure and clarity.`,
-    author: "AI" as const,
+    role: "assistant" as const,
   },
   {
     id: "8",
     content: "Thank you for the explanation! Can you give me an example calculation of how a SAFE converts?",
-    author: "User" as const,
+    role: "user" as const,
   },
   {
     id: "9",
@@ -64,7 +64,7 @@ However, some investors may still prefer notes for certain protections.`,
 - You invest $100,000 with a SAFE at a $2M valuation cap.
 - Later, a Series A happens at a $4M pre-money valuation.
 At that round, your $100,000 would convert to equity as if you'd invested at a $2M valuation, not $4M, granting you more shares. ($100,000 ÷ $2,000,000 = 5% ownership).`,
-    author: "AI" as const,
+    role: "assistant" as const,
   },
 ];
 
@@ -120,7 +120,7 @@ export default function ModulePage({ params }: ModulePageProps) {
                 <ChatMessage
                   key={message.id}
                   content={message.content}
-                  author={message.author}
+                  role={message.role}
                 />
               ))}
             </div>

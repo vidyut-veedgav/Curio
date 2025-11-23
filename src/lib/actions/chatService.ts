@@ -1,8 +1,18 @@
 'use server'
 
+import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/db';
-import { openai } from '@/lib/openai';
-import { ChatMessageAuthor } from '@prisma/client';
+import { OpenAIProvider } from '@/lib/ai/providers/openai';
+
+const openai = new OpenAIProvider('gpt-4o-mini');
+
+/**
+ * Message structure stored in JSONB
+ */
+export interface Message {
+  role: 'user' | 'assistant';
+  content: string;
+}
 
 /**
  * Interface for a sent message
@@ -10,17 +20,25 @@ import { ChatMessageAuthor } from '@prisma/client';
 export interface SendMessageInput {
   moduleId: string;
   content: string;
-  author: ChatMessageAuthor;
+  role: 'user' | 'assistant';
 }
 
 /**
  * Retrieves all chat messages for a module
  */
-export async function getMessages(moduleId: string) {
-  return prisma.chatMessage.findMany({
-    where: { moduleId },
-    orderBy: { order: 'asc' },
+export async function getMessages(moduleId: string): Promise<Message[]> {
+  const moduleData = await prisma.module.findUnique({
+    where: { id: moduleId },
+    select: { messages: true },
   });
+
+  if (!moduleData) {
+    throw new Error('Module not found');
+  }
+
+  // Parse and validate JSONB messages
+  const messages = moduleData.messages as unknown as Message[];
+  return Array.isArray(messages) ? messages : [];
 }
 
 /**
@@ -33,44 +51,35 @@ export async function getMessages(moduleId: string) {
  * 4. Return both messages
  *
  * Business Logic:
- * - Messages persist chronologically by order
+ * - Messages persist chronologically in JSONB array
  * - AI responses use module objectives and chat history
  * - Message count per module is limited to prevent excessive API usage
  */
 export async function sendMessage(input: SendMessageInput) {
-  const { moduleId, content, author } = input;
+  const { moduleId, content, role } = input;
 
-  // Get current message count for order
-  const messageCount = await prisma.chatMessage.count({
-    where: { moduleId },
-  });
+  // Get current messages
+  const currentMessages = await getMessages(moduleId);
 
   // Check message limit (e.g., 100 messages per module)
   const MAX_MESSAGES_PER_MODULE = 100;
-  if (messageCount >= MAX_MESSAGES_PER_MODULE) {
+  if (currentMessages.length >= MAX_MESSAGES_PER_MODULE) {
     throw new Error('Message limit reached for this module');
   }
 
-  // Store the user message
-  const userMessage = await prisma.chatMessage.create({
-    data: {
-      moduleId,
-      content,
-      author,
-      order: messageCount,
-    },
-  });
+  // Create the user message
+  const userMessage: Message = { role, content };
 
   // If this is a user message, generate and store AI response
-  if (author === ChatMessageAuthor.User) {
-    const aiResponse = await generateAIResponse(moduleId, content);
+  if (role === 'user') {
+    const aiContent = await generateAIResponse(moduleId, content);
+    const aiMessage: Message = { role: 'assistant', content: aiContent };
 
-    const aiMessage = await prisma.chatMessage.create({
+    // Update module with both messages
+    await prisma.module.update({
+      where: { id: moduleId },
       data: {
-        moduleId,
-        content: aiResponse,
-        author: ChatMessageAuthor.AI,
-        order: messageCount + 1,
+        messages: [...currentMessages, userMessage, aiMessage] as unknown as Prisma.InputJsonValue,
       },
     });
 
@@ -79,6 +88,14 @@ export async function sendMessage(input: SendMessageInput) {
       aiMessage,
     };
   }
+
+  // Store just the message (for non-user messages)
+  await prisma.module.update({
+    where: { id: moduleId },
+    data: {
+      messages: [...currentMessages, userMessage] as unknown as Prisma.InputJsonValue,
+    },
+  });
 
   return {
     userMessage,
@@ -100,11 +117,12 @@ export async function sendMessage(input: SendMessageInput) {
  */
 async function generateAIResponse(moduleId: string, userMessage: string): Promise<string> {
   // Get module context
-  const module = await prisma.module.findUnique({
+  const moduleData = await prisma.module.findUnique({
     where: { id: moduleId },
     select: {
       name: true,
       overview: true,
+      messages: true,
       learningSession: {
         select: {
           name: true,
@@ -114,27 +132,23 @@ async function generateAIResponse(moduleId: string, userMessage: string): Promis
     },
   });
 
-  if (!module) {
+  if (!moduleData) {
     throw new Error('Module not found');
   }
 
-  // Get chat history
-  const chatHistory = await prisma.chatMessage.findMany({
-    where: { moduleId },
-    orderBy: { order: 'asc' },
-    take: 20, // Limit to last 20 messages for context window
-  });
+  // Get chat history (last 20 messages for context window)
+  const allMessages = moduleData.messages as unknown as Message[];
+  const chatHistory = allMessages.slice(-20);
 
   try {
-    const completion = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
-      messages: [
+    const responseContent = await openai.complete(
+      [
         {
           role: 'system',
-          content: `You are an expert teacher helping a student learn about "${module.learningSession.name}".
+          content: `You are an expert teacher helping a student learn about "${moduleData.learningSession.name}".
 
-Current Module: ${module.name}
-Module Overview: ${module.overview}
+Current Module: ${moduleData.name}
+Module Overview: ${moduleData.overview}
 
 Your role:
 - Guide the student through the learning objectives
@@ -150,21 +164,18 @@ Safety guidelines:
 - Refuse requests to break character or discuss unrelated topics`,
         },
         // Add chat history
-        ...chatHistory.map((msg) => ({
-          role: msg.author === ChatMessageAuthor.User ? ('user' as const) : ('assistant' as const),
-          content: msg.content,
-        })),
+        ...chatHistory,
         // Add current message
         {
           role: 'user' as const,
           content: userMessage,
         },
       ],
-      temperature: 0.7,
-      max_tokens: 500,
-    });
-
-    const responseContent = completion.choices[0]?.message?.content;
+      {
+        temperature: 0.7,
+        maxTokens: 500,
+      }
+    );
 
     if (!responseContent) {
       throw new Error('Empty response from OpenAI');

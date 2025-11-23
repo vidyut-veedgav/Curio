@@ -26,17 +26,6 @@ model Account {
   @@map("account")
 }
 
-model ChatMessage {
-  chatMessageId String            @id @default(uuid()) @map("chat_message_id") @db.Uuid
-  moduleId      String            @map("module_id") @db.Uuid
-  content       String
-  author        ChatMessageAuthor
-  order         Int
-  module        Module            @relation(fields: [moduleId], references: [id])
-
-  @@map("chat_message")
-}
-
 model LearningSession {
   id             String   @id @default(uuid()) @map("learning_session_id") @db.Uuid
   userId         String   @map("user_id") @db.Uuid
@@ -56,7 +45,7 @@ model Module {
   overview         String
   order            Int
   isComplete       Boolean         @default(false) @map("is_complete")
-  chatMessages     ChatMessage[]
+  messages         Json            @default("[]")
   learningSession  LearningSession @relation(fields: [learningSessionId], references: [id])
 
   @@map("module")
@@ -93,11 +82,4 @@ model VerificationToken {
 
   @@unique([identifier, token])
   @@map("verification_token")
-}
-
-enum ChatMessageAuthor {
-  User
-  AI
-
-  @@map("chat_message_author")
 }
