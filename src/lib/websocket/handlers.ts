@@ -1,53 +1,77 @@
-// src/lib/websocket/handlers.ts
 import { Socket } from 'socket.io';
-import { Message, getMessages, sendMessage } from '@/lib/actions/chatActions';
+import { OpenAIProvider } from '@/lib/ai/providers/openai';
+import { addMessage, getMessages, Message } from '@/lib/actions/chatActions';
 
-export type Handler = (socket: Socket, data: any) => Promise<void>;
+export interface AIChatGenerationData {
+  moduleId: string;
+  message: string;
+}
 
-export async function handleChatMessage(socket: Socket, data: any) {
+/**
+ * Handles real-time AI chat generation via WebSocket
+ * Streams AI responses back to the client as chunks
+ */
+export async function handleAIChatGeneration(
+  socket: Socket,
+  data: AIChatGenerationData
+): Promise<void> {
   const { moduleId, message } = data;
 
   try {
-    socket.join(moduleId);
-
-    // Save user message and get AI response using chatService
-    const result = await sendMessage({
-      moduleId,
-      content: message,
-      role: 'user',
-    });
-
-    socket.emit('message_saved', { message: result.userMessage });
-
-    // Emit AI response
-    if (result.aiMessage) {
-      socket.to(moduleId).emit('assistant_complete', {
-        moduleId,
-        message: result.aiMessage
-      });
+    // Validate input
+    if (!moduleId || !message?.trim()) {
+      socket.emit('ai:chat:error', { error: 'Invalid moduleId or message' });
+      return;
     }
 
+    // Save user message to database
+    const userMessage: Message = {
+      role: 'user',
+      content: message.trim(),
+    };
+    await addMessage(moduleId, userMessage);
+
+    // Get conversation history
+    const conversationHistory = await getMessages(moduleId);
+
+    // Initialize OpenAI provider
+    const provider = new OpenAIProvider('gpt-4o-mini');
+
+    // Convert to OpenAI message format
+    const aiMessages = conversationHistory.map((msg) => ({
+      role: msg.role as 'user' | 'assistant' | 'system',
+      content: msg.content,
+    }));
+
+    // Stream AI response
+    let fullResponse = '';
+
+    for await (const chunk of provider.stream(aiMessages, {
+      temperature: 0.7,
+      maxTokens: 500,
+    })) {
+      fullResponse += chunk;
+      // Emit each chunk to the client
+      socket.emit('ai:chat:chunk', { chunk });
+    }
+
+    // Save complete AI response to database
+    const assistantMessage: Message = {
+      role: 'assistant',
+      content: fullResponse,
+    };
+    await addMessage(moduleId, assistantMessage);
+
+    // Notify client that generation is complete
+    socket.emit('ai:chat:complete', {
+      message: fullResponse,
+      moduleId,
+    });
+
   } catch (error) {
-    socket.emit('error', {
-      message: 'Failed to process message',
-      error: error instanceof Error ? error.message : 'Unknown error'
+    console.error('AI chat generation error:', error);
+    socket.emit('ai:chat:error', {
+      error: error instanceof Error ? error.message : 'Unknown error occurred',
     });
   }
-}
-
-export async function handleTyping(socket: Socket, data: any) {
-  const { moduleId, isTyping, userName } = data;
-
-  socket.join(moduleId);
-  socket.to(moduleId).emit('user_typing', {
-    userId: socket.id,
-    userName,
-    isTyping,
-    moduleId
-  });
-}
-
-export async function handleJoinModule(socket: Socket, data: any) {
-  const { moduleId } = data;
-  socket.join(moduleId);
 }
