@@ -6,6 +6,7 @@ import { Header } from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Skeleton } from "@/components/ui/skeleton";
 import { ChatMessage } from "./components/ChatMessage";
 import { use, useState, useRef, useEffect, useMemo } from "react";
 import { useAIChat, useGetMessages, useGetModule } from "./hooks";
@@ -88,9 +89,18 @@ export default function ModulePage({ params }: ModulePageProps) {
       <div className="bg-background flex justify-center border-b">
         <div className="w-full max-w-4xl px-6">
           <div className="pt-8 pb-8 flex items-center justify-between">
-            <div className="flex flex-col items-start">
-              <p className="text-sm text-muted-foreground">{sessionName}</p>
-              <h1 className="text-2xl font-semibold">{moduleName}</h1>
+            <div className="flex flex-col items-start gap-2">
+              {getModuleQuery.isLoading ? (
+                <>
+                  <Skeleton className="h-5 w-32" />
+                  <Skeleton className="h-8 w-64" />
+                </>
+              ) : (
+                <>
+                  <p className="text-sm text-muted-foreground">{sessionName}</p>
+                  <h1 className="text-2xl font-semibold">{moduleName}</h1>
+                </>
+              )}
             </div>
 
             <div className="flex items-center gap-3">
@@ -115,8 +125,19 @@ export default function ModulePage({ params }: ModulePageProps) {
           <div className="w-full max-w-4xl px-6">
             <div className="space-y-4">
               {getMessagesQuery.isLoading ? (
-                <div className="text-center text-muted-foreground py-12">
-                  <p>Loading chat history...</p>
+                <div className="space-y-8 py-6">
+                  <div className="space-y-2">
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-3/4" />
+                    <Skeleton className="h-4 w-5/6" />
+                  </div>
+                  <div className="space-y-2">
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-2/3" />
+                    <Skeleton className="h-4 w-4/5" />
+                  </div>
                 </div>
               ) : displayMessages.length === 0 ? (
                 <div className="text-center text-muted-foreground py-12">
