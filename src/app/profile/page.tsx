@@ -1,10 +1,9 @@
 "use client"
 
 import type React from "react"
-import { useCallback, useEffect, useState } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import { useSession } from "next-auth/react"
-import { useQueryClient } from "@tanstack/react-query"
+import { useSession, signOut } from "next-auth/react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -12,15 +11,8 @@ import { Textarea } from "@/components/ui/textarea"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Header } from "@/components/Header"
 import { User, Pencil, LogOut, Camera } from "lucide-react"
-import { signOut } from "next-auth/react"
-
-type ProfilePayload = {
-  id: string
-  name: string | null
-  email: string
-  bio: string | null
-  image: string | null
-}
+import { useGetUser } from "@/hooks/useGetUser"
+import { useUpdateUser } from "./hooks"
 
 function splitFullName(name: string | null): [string, string] {
   if (!name) {
@@ -44,57 +36,35 @@ function combineName(first: string, last: string) {
 
 export default function ProfilePage() {
   const router = useRouter()
-  const { status } = useSession()
-  const queryClient = useQueryClient()
+  const { data: session, status } = useSession()
+  const userId = session?.user?.id || ""
+
+  const getUserQuery = useGetUser(userId)
+  const updateUserMutation = useUpdateUser(userId)
+
   const [isEditing, setIsEditing] = useState(false)
-  const [isSaving, setIsSaving] = useState(false)
-  const [isLoadingProfile, setIsLoadingProfile] = useState(true)
-  const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
   const [firstName, setFirstName] = useState("")
   const [lastName, setLastName] = useState("")
-  const [email, setEmail] = useState("")
   const [bio, setBio] = useState("")
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false)
 
-  const loadProfile = useCallback(async () => {
-    setIsLoadingProfile(true)
-    setErrorMessage(null)
-    setSuccessMessage(null)
-
-    try {
-      const response = await fetch("/api/profile")
-      const payload: { success?: boolean; data?: ProfilePayload; error?: string } = await response.json()
-
-      if (!response.ok || !payload.success || !payload.data) {
-        throw new Error(payload.error || "Unable to load profile")
-      }
-
-      const [fName, lName] = splitFullName(payload.data.name)
-      setFirstName(fName)
-      setLastName(lName)
-      setEmail(payload.data.email)
-      setBio(payload.data.bio ?? "")
-      setAvatarUrl(payload.data.image)
-    } catch (error) {
-      const message = error instanceof Error ? error.message : "Unable to load profile"
-      setErrorMessage(message)
-    } finally {
-      setIsLoadingProfile(false)
-    }
-  }, [])
-
   useEffect(() => {
     if (status === "unauthenticated") {
       router.replace("/login")
-      return
     }
+  }, [status, router])
 
-    if (status === "authenticated") {
-      loadProfile()
+  useEffect(() => {
+    if (getUserQuery.data) {
+      const [fName, lName] = splitFullName(getUserQuery.data.name)
+      setFirstName(fName)
+      setLastName(lName)
+      setBio(getUserQuery.data.bio ?? "")
+      setAvatarUrl(getUserQuery.data.image)
     }
-  }, [status, router, loadProfile])
+  }, [getUserQuery.data])
 
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -102,18 +72,15 @@ export default function ProfilePage() {
 
     // Validate file type
     if (!file.type.startsWith("image/")) {
-      setErrorMessage("Please select an image file")
       return
     }
 
     // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
-      setErrorMessage("Image size must be less than 5MB")
       return
     }
 
     setIsUploadingAvatar(true)
-    setErrorMessage(null)
 
     try {
       // For now, just create a local preview URL
@@ -121,8 +88,6 @@ export default function ProfilePage() {
       const previewUrl = URL.createObjectURL(file)
       setAvatarUrl(previewUrl)
       setSuccessMessage("Avatar updated (preview only)")
-    } catch (error) {
-      setErrorMessage("Failed to upload avatar")
     } finally {
       setIsUploadingAvatar(false)
     }
@@ -130,46 +95,37 @@ export default function ProfilePage() {
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault()
-    setIsSaving(true)
-    setErrorMessage(null)
     setSuccessMessage(null)
 
-    try {
-      const response = await fetch("/api/profile", {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
+    const name = combineName(firstName, lastName) || undefined
+
+    updateUserMutation.mutate(
+      { name, bio },
+      {
+        onSuccess: () => {
+          setSuccessMessage("Profile updated successfully")
+          setIsEditing(false)
         },
-        body: JSON.stringify({
-          name: combineName(firstName, lastName) || undefined,
-          bio,
-        }),
-      })
-
-      const payload: { success?: boolean; data?: ProfilePayload; error?: string } = await response.json()
-
-      if (!response.ok || !payload.success || !payload.data) {
-        throw new Error(payload.error || "Unable to save profile")
       }
-
-      const [updatedFirst, updatedLast] = splitFullName(payload.data.name)
-      setFirstName(updatedFirst)
-      setLastName(updatedLast)
-      setBio(payload.data.bio ?? "")
-      setAvatarUrl(payload.data.image)
-      setSuccessMessage("Profile updated successfully")
-      queryClient.setQueryData(["current-user"], payload.data)
-      queryClient.invalidateQueries({ queryKey: ["current-user"] })
-      setIsEditing(false)
-    } catch (error) {
-      const message = error instanceof Error ? error.message : "Unable to save profile"
-      setErrorMessage(message)
-    } finally {
-      setIsSaving(false)
-    }
+    )
   }
 
-  if (status === "loading" || isLoadingProfile) {
+  const handleCancel = () => {
+    if (getUserQuery.data) {
+      const [fName, lName] = splitFullName(getUserQuery.data.name)
+      setFirstName(fName)
+      setLastName(lName)
+      setBio(getUserQuery.data.bio ?? "")
+      setAvatarUrl(getUserQuery.data.image)
+    }
+    setIsEditing(false)
+    setSuccessMessage(null)
+    updateUserMutation.reset()
+  }
+
+  const isLoading = status === "loading" || getUserQuery.isLoading
+
+  if (isLoading) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-background">
         <p className="text-muted-foreground">Loading your profile…</p>
@@ -180,6 +136,8 @@ export default function ProfilePage() {
   if (status === "unauthenticated") {
     return null
   }
+
+  const errorMessage = getUserQuery.error?.message || updateUserMutation.error?.message
 
   return (
     <div className="min-h-screen bg-background">
@@ -279,7 +237,7 @@ export default function ProfilePage() {
                     <Input
                       id="email"
                       type="email"
-                      value={email}
+                      value={getUserQuery.data?.email || ""}
                       disabled
                       className="border-muted bg-muted/50"
                     />
@@ -310,19 +268,14 @@ export default function ProfilePage() {
             {/* Action Buttons */}
             {isEditing && (
               <div className="flex gap-3 border-t bg-muted/50 px-6 py-4">
-                <Button type="submit" disabled={isSaving} className="flex-1 sm:flex-initial">
-                  {isSaving ? "Saving..." : "Save changes"}
+                <Button type="submit" disabled={updateUserMutation.isPending} className="flex-1 sm:flex-initial">
+                  {updateUserMutation.isPending ? "Saving..." : "Save changes"}
                 </Button>
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => {
-                    setIsEditing(false)
-                    setSuccessMessage(null)
-                    setErrorMessage(null)
-                    loadProfile()
-                  }}
-                  disabled={isSaving}
+                  onClick={handleCancel}
+                  disabled={updateUserMutation.isPending}
                   className="flex-1 sm:flex-initial"
                 >
                   Cancel
