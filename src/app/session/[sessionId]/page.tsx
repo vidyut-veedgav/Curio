@@ -1,10 +1,14 @@
+"use client";
+
+import { useMemo, useEffect, useState } from 'react';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import { getSessionById } from '@/lib/actions/sessionActions';
 import { SessionProgressBar } from './components/SessionProgressBar';
 import { SessionDescription } from './components/SessionDescription';
 import { ModuleList } from './components/ModuleList';
 import { Header } from '@/components/Header';
+import { Spinner } from '@/components/ui/spinner';
+import { useGetSession } from './hooks';
 
 interface SessionPageProps {
   params: Promise<{
@@ -12,23 +16,52 @@ interface SessionPageProps {
   }>;
 }
 
-export default async function SessionPage({ params }: SessionPageProps) {
-  const { sessionId } = await params;
-  const session = await getSessionById(sessionId);
+export default function SessionPage({ params }: SessionPageProps) {
+  const [sessionId, setSessionId] = useState<string>('');
 
-  if (!session) {
+  useEffect(() => {
+    params.then(p => setSessionId(p.sessionId));
+  }, [params]);
+
+  const getSessionQuery = useGetSession(sessionId);
+
+  const sessionData = useMemo(() => {
+    if (!getSessionQuery.data) return null;
+
+    const session = getSessionQuery.data;
+    const totalModules = session.modules.length;
+    const completedModules = session.modules.filter((m) => m.isComplete).length;
+
+    // Infer length from module count (based on sessionService.ts:119)
+    const inferredLength: 'short' | 'medium' | 'long' =
+      totalModules <= 3 ? 'short' :
+      totalModules <= 5 ? 'medium' :
+      'long';
+
+    return {
+      session,
+      totalModules,
+      completedModules,
+      inferredLength,
+    };
+  }, [getSessionQuery.data]);
+
+  if (getSessionQuery.isLoading || !sessionId) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col">
+        <Header />
+        <div className="flex-1 flex items-center justify-center">
+          <Spinner className="size-12" />
+        </div>
+      </div>
+    );
+  }
+
+  if (!sessionData) {
     notFound();
   }
 
-  // Calculate progress
-  const totalModules = session.modules.length;
-  const completedModules = session.modules.filter((m) => m.isComplete).length;
-
-  // Infer length from module count (based on sessionService.ts:119)
-  const inferredLength =
-    totalModules <= 3 ? 'short' :
-    totalModules <= 5 ? 'medium' :
-    'long';
+  const { session, totalModules, completedModules, inferredLength } = sessionData;
 
   return (
     <div className="min-h-screen bg-background">
