@@ -3,9 +3,7 @@
 import * as React from "react";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
-import ReactMarkdown from "react-markdown";
-import remarkMath from "remark-math";
-import rehypeKatex from "rehype-katex";
+import MarkdownRenderer from "@/app/MarkdownRenderer";
 
 const chatMessageVariants = cva(
   "break-words",
@@ -43,13 +41,8 @@ const ChatMessage = React.forwardRef<HTMLDivElement, ChatMessageProps>(
             className
           )}
         >
-          <div className="text-base leading-relaxed prose prose-sm max-w-none dark:prose-invert [&_.katex]:text-inherit [&_.katex-display]:my-2 [&_.katex-display]:overflow-x-auto [&_.katex-display]:overflow-y-hidden">
-            <ReactMarkdown
-              remarkPlugins={[remarkMath]}
-              rehypePlugins={[rehypeKatex]}
-            >
-              {content}
-            </ReactMarkdown>
+          <div className="text-base leading-relaxed prose prose-sm max-w-none dark:prose-invert">
+            <MarkdownRenderer>{content}</MarkdownRenderer>
           </div>
         </div>
       </div>

@@ -37,11 +37,24 @@ export async function handleAIChatGeneration(
     // Initialize OpenAI provider
     const provider = new OpenAIProvider('gpt-4o-mini');
 
+    // Add system message with formatting instructions
+    const systemMessage = {
+      role: 'system' as const,
+      content: `When generating mathematical equations, use proper markdown math syntax:
+- For inline math: $equation$
+- For display/block math: $$equation$$
+
+Example: $$\\text{Precision} = \\frac{\\text{True Positives}}{\\text{True Positives} + \\text{False Positives}}$$`,
+    };
+
     // Convert to OpenAI message format
-    const aiMessages = conversationHistory.map((msg) => ({
-      role: msg.role as 'user' | 'assistant' | 'system',
-      content: msg.content,
-    }));
+    const aiMessages = [
+      systemMessage,
+      ...conversationHistory.map((msg) => ({
+        role: msg.role as 'user' | 'assistant' | 'system',
+        content: msg.content,
+      })),
+    ];
 
     // Stream AI response
     let fullResponse = '';
