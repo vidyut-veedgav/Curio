@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
+import Image from "next/image";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -60,8 +61,8 @@ export function Header() {
 
   return (
     <header className="flex items-center justify-between px-6 py-1.5 border-b">
-      <Link href="/home" className="text-2xl font-bold tracking-tight text-primary hover:opacity-80 transition-opacity">
-        curio
+      <Link href="/home" className="hover:opacity-80 transition-opacity">
+        <Image src="/CurioLogo.png" alt="Curio" width={300} height={100} priority className="h-6 w-auto" />
       </Link>
       {isProfilePage ? (
         <div className="flex items-center gap-3">{identity}</div>
