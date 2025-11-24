@@ -1,8 +1,10 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { useSocket } from '@/hooks/useSocket';
-import { Message } from '@/lib/actions/chatActions';
+import { Message, getMessages } from '@/lib/actions/chatActions';
+import { getModuleById } from '@/lib/actions/moduleActions';
 
 interface UseAIChatOptions {
   moduleId: string;
@@ -15,6 +17,7 @@ interface UseAIChatReturn {
   sendMessage: (content: string) => void;
   error: string | null;
 }
+
 
 /**
  * Custom hook for AI chat functionality within a module
@@ -113,4 +116,28 @@ export function useAIChat({ moduleId }: UseAIChatOptions): UseAIChatReturn {
     sendMessage,
     error,
   };
+}
+
+/**
+ * Custom hook to fetch and manage chat message history for a module
+ * Retrieves all messages stored in the database for the given module
+ */
+export function useGetMessages(moduleId: string) {
+  return useQuery({
+    queryKey: ['messages', moduleId],
+    queryFn: () => getMessages(moduleId),
+    enabled: !!moduleId,
+  });
+}
+
+/**
+ * Custom hook to fetch and manage module data
+ * Retrieves module information including learning session context
+ */
+export function useGetModule(moduleId: string) {
+  return useQuery({
+    queryKey: ['module', moduleId],
+    queryFn: () => getModuleById(moduleId),
+    enabled: !!moduleId,
+  });
 }

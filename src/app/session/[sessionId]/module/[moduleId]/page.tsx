@@ -7,66 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ChatMessage } from "./components/ChatMessage";
-import { use } from "react";
-
-// Mock data for demonstration
-const mockMessages = [
-  {
-    id: "1",
-    content: "Explain how a SAFE works in VC",
-    role: "user" as const,
-  },
-  {
-    id: "2",
-    content: `A SAFE (Simple Agreement for Future Equity) is a financing instrument commonly used in early-stage startup funding. Here's how it works:
-
-Basic Concept
-A SAFE is essentially a contract where an investor gives money to a startup now, in exchange for the right to receive equity later when a specific triggering event occurs (usually a priced funding round).`,
-    role: "assistant" as const,
-  },
-  {
-    id: "3",
-    content: "Wow that is so cool! I'm super interested in SAFEs. When I grow up I want to become a venture capitalist! I love the idea of investing in the future.",
-    role: "user" as const,
-  },
-  {
-    id: "4",
-    content: "What are the main advantages of using a SAFE versus a convertible note?",
-    role: "user" as const,
-  },
-  {
-    id: "5",
-    content: `The main advantages of SAFEs over convertible notes are:
-- No interest accrues, as SAFEs are not debt.
-- No maturity date, removing pressure to convert within a set time.
-- Docs are simpler and usually more friendly to founders (and often investors too).
-However, some investors may still prefer notes for certain protections.`,
-    role: "assistant" as const,
-  },
-  {
-    id: "6",
-    content: "Can SAFEs be used in later-stage funding rounds too?",
-    role: "user" as const,
-  },
-  {
-    id: "7",
-    content: `While SAFEs are most common in early-stage rounds (pre-seed and seed), they can theoretically be used at any stage. However, later stage investors generally prefer priced equity rounds for structure and clarity.`,
-    role: "assistant" as const,
-  },
-  {
-    id: "8",
-    content: "Thank you for the explanation! Can you give me an example calculation of how a SAFE converts?",
-    role: "user" as const,
-  },
-  {
-    id: "9",
-    content: `Sure! Let's say:
-- You invest $100,000 with a SAFE at a $2M valuation cap.
-- Later, a Series A happens at a $4M pre-money valuation.
-At that round, your $100,000 would convert to equity as if you'd invested at a $2M valuation, not $4M, granting you more shares. ($100,000 ÷ $2,000,000 = 5% ownership).`,
-    role: "assistant" as const,
-  },
-];
+import { use, useState, useRef, useEffect, useMemo } from "react";
+import { useAIChat, useGetMessages, useGetModule } from "./hooks";
 
 interface ModulePageProps {
   params: Promise<{
@@ -77,10 +19,66 @@ interface ModulePageProps {
 
 export default function ModulePage({ params }: ModulePageProps) {
   const { sessionId, moduleId } = use(params);
+  const [inputValue, setInputValue] = useState("");
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
 
-  // Static data for now - will be replaced with actual data fetching
-  const sessionName = "Machine Learning Fundamentals";
-  const moduleName = "2. Linear Algebra";
+  // Fetch module data and chat history
+  const getModuleQuery = useGetModule(moduleId);
+  const getMessagesQuery = useGetMessages(moduleId);
+
+  // WebSocket AI chat integration
+  const { messages, streamingMessage, isStreaming, sendMessage, error } = useAIChat({
+    moduleId,
+  });
+
+  // Extract module and session names from fetched data
+  const sessionName = getModuleQuery.data?.learningSession?.name || "Loading...";
+  const moduleName = getModuleQuery.data?.name || "Loading...";
+
+  // Combine database messages with WebSocket messages and streaming message for display
+  const displayMessages = useMemo(() => {
+    // Start with messages from database
+    const dbMessages = getMessagesQuery.data || [];
+
+    // Add WebSocket messages (from current session)
+    const allMessages = [...dbMessages, ...messages];
+
+    // Add streaming message if AI is currently responding
+    if (isStreaming && streamingMessage) {
+      allMessages.push({
+        role: 'assistant' as const,
+        content: streamingMessage,
+      });
+    }
+
+    return allMessages;
+  }, [getMessagesQuery.data, messages, streamingMessage, isStreaming]);
+
+  // Auto-scroll to bottom when new messages arrive
+  useEffect(() => {
+    if (scrollAreaRef.current) {
+      const scrollContainer = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
+      if (scrollContainer) {
+        scrollContainer.scrollTop = scrollContainer.scrollHeight;
+      }
+    }
+  }, [displayMessages]);
+
+  // Handle message submission
+  const handleSendMessage = () => {
+    if (!inputValue.trim() || isStreaming) return;
+
+    sendMessage(inputValue);
+    setInputValue("");
+  };
+
+  // Handle Enter key (without shift)
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
+    }
+  };
 
   return (
     <div className="h-screen bg-background flex flex-col overflow-hidden">
@@ -112,17 +110,32 @@ export default function ModulePage({ params }: ModulePageProps) {
       </div>
 
       {/* Chat Messages Area */}
-      <ScrollArea className="flex-1">
+      <ScrollArea className="flex-1" ref={scrollAreaRef}>
         <div className="flex justify-center py-6">
           <div className="w-full max-w-4xl px-6">
             <div className="space-y-4">
-              {mockMessages.map((message) => (
-                <ChatMessage
-                  key={message.id}
-                  content={message.content}
-                  role={message.role}
-                />
-              ))}
+              {getMessagesQuery.isLoading ? (
+                <div className="text-center text-muted-foreground py-12">
+                  <p>Loading chat history...</p>
+                </div>
+              ) : displayMessages.length === 0 ? (
+                <div className="text-center text-muted-foreground py-12">
+                  <p>Start a conversation by asking a question below.</p>
+                </div>
+              ) : (
+                displayMessages.map((message, index) => (
+                  <ChatMessage
+                    key={`${message.role}-${index}`}
+                    content={message.content}
+                    role={message.role}
+                  />
+                ))
+              )}
+              {error && (
+                <div className="text-center text-destructive text-sm py-2">
+                  Error: {error}
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -133,13 +146,19 @@ export default function ModulePage({ params }: ModulePageProps) {
         <div className="w-full max-w-4xl px-6">
           <div className="relative">
             <Textarea
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              onKeyDown={handleKeyDown}
               placeholder="Ask a follow-up question..."
               className="w-full !text-base resize-none rounded-xl px-5 py-3 pr-12 shadow-sm focus-visible:ring-0 focus-visible:ring-offset-0 min-h-[72px] max-h-[200px]"
               rows={1}
+              disabled={isStreaming}
             />
             <Button
               size="icon"
               className="absolute right-2 bottom-2 h-8 w-8 rounded-full shrink-0"
+              onClick={handleSendMessage}
+              disabled={!inputValue.trim() || isStreaming}
             >
               <ArrowUp className="h-4 w-4" />
             </Button>
