@@ -55,7 +55,9 @@ export default function ModulePage({ params }: ModulePageProps) {
     return allMessages;
   }, [getMessagesQuery.data, messages, streamingMessage, isStreaming]);
 
-  // Auto-scroll to bottom when new messages arrive
+  // Auto-scroll to bottom when new messages arrive (not on every render)
+  const messageCount = displayMessages.length;
+
   useEffect(() => {
     if (scrollAreaRef.current) {
       const scrollContainer = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
@@ -63,7 +65,7 @@ export default function ModulePage({ params }: ModulePageProps) {
         scrollContainer.scrollTop = scrollContainer.scrollHeight;
       }
     }
-  }, [displayMessages]);
+  }, [messageCount]); // Only scroll when message count changes, not on every keystroke
 
   // Handle message submission
   const handleSendMessage = () => {

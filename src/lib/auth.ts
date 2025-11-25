@@ -16,6 +16,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     async session({ session, user }) {
       if (session?.user) {
         session.user.id = user.id;
+        // Include user data in session to avoid extra query
+        session.user.name = user.name;
+        session.user.email = user.email;
+        session.user.image = user.image;
       }
       return session;
     },

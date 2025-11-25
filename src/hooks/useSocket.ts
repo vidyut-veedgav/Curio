@@ -12,8 +12,8 @@ export function useSocket() {
   const socketRef = useRef<Socket | null>(null);
 
   useEffect(() => {
-    // Initialize socket connection
-    const socketInstance = io({
+    // Initialize socket connection to WebSocket server
+    const socketInstance = io('http://localhost:3001', {
       path: '/api/socket',
       autoConnect: true,
     });

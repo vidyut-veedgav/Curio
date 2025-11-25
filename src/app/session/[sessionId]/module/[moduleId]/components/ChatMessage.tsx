@@ -27,7 +27,7 @@ export interface ChatMessageProps
   role: "user" | "assistant";
 }
 
-const ChatMessage = React.forwardRef<HTMLDivElement, ChatMessageProps>(
+const ChatMessage = React.memo(React.forwardRef<HTMLDivElement, ChatMessageProps>(
   ({ className, variant, content, role, ...props }, ref) => {
     return (
       <div
@@ -48,7 +48,7 @@ const ChatMessage = React.forwardRef<HTMLDivElement, ChatMessageProps>(
       </div>
     );
   }
-);
+));
 ChatMessage.displayName = "ChatMessage";
 
 export { ChatMessage, chatMessageVariants };

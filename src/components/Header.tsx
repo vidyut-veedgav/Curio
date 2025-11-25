@@ -3,16 +3,11 @@
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import Image from "next/image";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useGetUser } from "@/hooks/useGetUser";
 
 export function Header() {
   const { data: session, status: sessionStatus } = useSession();
-  const userId = session?.user?.id || "";
-
-  const getUserQuery = useGetUser(userId);
-  const isLoading = sessionStatus === "loading" || getUserQuery.isLoading;
+  const isLoading = sessionStatus === "loading";
 
   const identity = isLoading ? (
     <>
@@ -22,11 +17,18 @@ export function Header() {
   ) : (
     <>
       <span className="text-sm font-medium text-foreground">
-        {getUserQuery.data?.name ?? getUserQuery.data?.email}
+        {session?.user?.name ?? session?.user?.email}
       </span>
-      <Avatar className="h-8 w-8 rounded-md">
-        <AvatarImage src={getUserQuery.data?.image ?? undefined} alt={getUserQuery.data?.name ?? "Current user avatar"} />
-        <AvatarFallback className="bg-muted">
+      {session?.user?.image ? (
+        <Image
+          src={session.user.image}
+          alt={session?.user?.name ?? "User avatar"}
+          width={32}
+          height={32}
+          className="h-8 w-8 rounded-md object-cover"
+        />
+      ) : (
+        <div className="h-8 w-8 rounded-md bg-muted flex items-center justify-center">
           <svg
             className="h-4 w-4 text-muted-foreground"
             fill="none"
@@ -40,8 +42,8 @@ export function Header() {
               d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
             />
           </svg>
-        </AvatarFallback>
-      </Avatar>
+        </div>
+      )}
     </>
   );
 

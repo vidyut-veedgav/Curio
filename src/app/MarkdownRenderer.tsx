@@ -14,18 +14,44 @@ interface MarkdownRendererProps {
   children: string;
 }
 
+// Memoize components object to prevent recreating on every render
+const markdownComponents = {
+  code(props: any) {
+    const { inline, className, children: codeChildren, ...rest } = props;
+    const match = /language-(\w+)/.exec(className || "");
+
+    return !inline && match ? (
+      <SyntaxHighlighter
+        style={dracula as { [key: string]: React.CSSProperties }}
+        PreTag="div"
+        language={match[1]}
+      >
+        {String(codeChildren).replace(/\n$/, "")}
+      </SyntaxHighlighter>
+    ) : (
+      <code className={className} {...rest}>
+        {codeChildren}
+      </code>
+    );
+  },
+  p(props: any) {
+    const { children: pChildren, ...rest } = props;
+    return <p {...rest}>{pChildren}</p>;
+  },
+};
+
 export default function MarkdownRenderer({ children }: MarkdownRendererProps) {
   // 1. Pre-process the content to replace AI delimiters with library delimiters
   // We use useMemo so this only runs when the content actually changes
   const processedContent = useMemo(() => {
     if (!children) return "";
-    
+
     return children
       // Replace block math \[ ... \] with $$ ... $$
-      .replace(/\\\[/g, '$$$$') 
+      .replace(/\\\[/g, '$$$$')
       .replace(/\\\]/g, '$$$$')
       // Replace inline math \( ... \) with $ ... $
-      .replace(/\\\(/g, '$$') 
+      .replace(/\\\(/g, '$$')
       .replace(/\\\)/g, '$$');
   }, [children]);
 
@@ -33,34 +59,7 @@ export default function MarkdownRenderer({ children }: MarkdownRendererProps) {
     <Markdown
       remarkPlugins={[remarkGfm, remarkMath]}
       rehypePlugins={[rehypeRaw, rehypeKatex]}
-      components={{
-        code(props) {
-          const { inline, className, children: codeChildren, ...rest } = props as {
-            inline?: boolean;
-            className?: string;
-            children?: React.ReactNode;
-          };
-          const match = /language-(\w+)/.exec(className || "");
-
-          return !inline && match ? (
-            <SyntaxHighlighter
-              style={dracula as { [key: string]: React.CSSProperties }}
-              PreTag="div"
-              language={match[1]}
-            >
-              {String(codeChildren).replace(/\n$/, "")}
-            </SyntaxHighlighter>
-          ) : (
-            <code className={className} {...rest}>
-              {codeChildren}
-            </code>
-          );
-        },
-        p(props) {
-          const { children: pChildren, ...rest } = props;
-          return <p {...rest}>{pChildren}</p>;
-        },
-      }}
+      components={markdownComponents}
     >
       {processedContent}
     </Markdown>
