@@ -4,9 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "concurrently \"npm:dev:next\" \"npm:dev:ws\"",
+    "dev": "npx tsx server.ts",
     "dev:next": "next dev",
-    "dev:ws": "npx tsx server.ts",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
