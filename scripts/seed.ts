@@ -6,14 +6,12 @@
  */
 
 import { prisma } from '@/lib/db';
-import { ChatMessageAuthor } from '@prisma/client';
 
 async function main() {
   console.log('Starting database seed...\n');
 
   // Clean existing data (optional - comment out if you want to keep existing data)
   console.log('Cleaning existing data...');
-  await prisma.chatMessage.deleteMany();
   await prisma.module.deleteMany();
   await prisma.learningSession.deleteMany();
   await prisma.user.deleteMany();
@@ -55,18 +53,21 @@ async function main() {
             overview: 'Introduction to TypeScript syntax, types, and basic concepts. Learn about primitive types, type inference, and type annotations.',
             order: 0,
             isComplete: false,
+            messages: [],
           },
           {
             name: 'Advanced Types',
             overview: 'Explore union types, intersection types, generics, and utility types. Understand how to create flexible and reusable type definitions.',
             order: 1,
             isComplete: false,
+            messages: [],
           },
           {
             name: 'TypeScript with React',
             overview: 'Apply TypeScript to React applications. Learn how to type components, props, state, and hooks effectively.',
             order: 2,
             isComplete: false,
+            messages: [],
           },
         ],
       },
@@ -89,12 +90,14 @@ async function main() {
             overview: 'Introduction to ML concepts, types of learning (supervised, unsupervised, reinforcement), and real-world applications.',
             order: 0,
             isComplete: true,
+            messages: [],
           },
           {
             name: 'Linear Regression',
             overview: 'Learn the fundamentals of linear regression, cost functions, and gradient descent optimization.',
             order: 1,
             isComplete: false,
+            messages: [],
           },
         ],
       },
@@ -117,6 +120,7 @@ async function main() {
             overview: 'Learn about file-based routing, server components, and the App Router architecture.',
             order: 0,
             isComplete: false,
+            messages: [],
           },
         ],
       },
@@ -137,33 +141,28 @@ async function main() {
   console.log('Creating chat messages...');
   const firstModule = session1.modules[0];
 
-  await prisma.chatMessage.createMany({
-    data: [
-      {
-        moduleId: firstModule.id,
-        content: 'Hi! Can you explain what TypeScript is?',
-        author: ChatMessageAuthor.User,
-        order: 0,
-      },
-      {
-        moduleId: firstModule.id,
-        content: 'Hello! TypeScript is a superset of JavaScript that adds static typing to the language. It helps catch errors during development and makes your code more maintainable. Think of it as JavaScript with extra features that help you write safer code!',
-        author: ChatMessageAuthor.AI,
-        order: 1,
-      },
-      {
-        moduleId: firstModule.id,
-        content: 'What are the main benefits of using TypeScript?',
-        author: ChatMessageAuthor.User,
-        order: 2,
-      },
-      {
-        moduleId: firstModule.id,
-        content: 'Great question! The main benefits are:\n\n1. **Type Safety**: Catch errors before runtime\n2. **Better IDE Support**: Get autocomplete and inline documentation\n3. **Improved Refactoring**: Confidently rename variables and functions\n4. **Self-Documenting Code**: Types serve as inline documentation\n5. **Enhanced Collaboration**: Teams can understand code interfaces easily',
-        author: ChatMessageAuthor.AI,
-        order: 3,
-      },
-    ],
+  await prisma.module.update({
+    where: { id: firstModule.id },
+    data: {
+      messages: [
+        {
+          role: 'user',
+          content: 'Hi! Can you explain what TypeScript is?',
+        },
+        {
+          role: 'assistant',
+          content: 'Hello! TypeScript is a superset of JavaScript that adds static typing to the language. It helps catch errors during development and makes your code more maintainable. Think of it as JavaScript with extra features that help you write safer code!',
+        },
+        {
+          role: 'user',
+          content: 'What are the main benefits of using TypeScript?',
+        },
+        {
+          role: 'assistant',
+          content: 'Great question! The main benefits are:\n\n1. **Type Safety**: Catch errors before runtime\n2. **Better IDE Support**: Get autocomplete and inline documentation\n3. **Improved Refactoring**: Confidently rename variables and functions\n4. **Self-Documenting Code**: Types serve as inline documentation\n5. **Enhanced Collaboration**: Teams can understand code interfaces easily',
+        },
+      ],
+    },
   });
 
   console.log(`Created 4 chat messages for module: ${firstModule.name}\n`);

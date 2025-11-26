@@ -5,7 +5,7 @@
  * Run with: npm run test:user
  */
 
-import { getUserData, setUserData, createUser } from '@/lib/services/userService';
+import { getUserData, setUserData, createUser } from '@/lib/actions/userActions';
 import { prisma } from '@/lib/db';
 
 // Helper function to print formatted output

@@ -1,32 +1,36 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { signOut } from "next-auth/react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { useSession } from "next-auth/react";
+import Image from "next/image";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export function Header() {
-  const { data: user, isLoading } = useCurrentUser();
-  const pathname = usePathname();
-  const isProfilePage = pathname?.startsWith("/profile");
-  const displayName = user?.name ?? user?.email ?? (isLoading ? "Loading..." : "Anonymous");
+  const { data: session, status: sessionStatus } = useSession();
+  const isLoading = sessionStatus === "loading";
 
-  const identity = (
+  const identity = isLoading ? (
     <>
-      <span className="text-base font-medium text-foreground">{displayName}</span>
-      <Avatar className="h-12 w-12">
-        <AvatarImage src={user?.image ?? undefined} alt={user?.name ?? "Current user avatar"} />
-        <AvatarFallback className="bg-muted">
+      <Skeleton className="h-4 w-24" />
+      <Skeleton className="h-8 w-8 rounded-md" />
+    </>
+  ) : (
+    <>
+      <span className="text-sm font-medium text-foreground">
+        {session?.user?.name ?? session?.user?.email}
+      </span>
+      {session?.user?.image ? (
+        <Image
+          src={session.user.image}
+          alt={session?.user?.name ?? "User avatar"}
+          width={32}
+          height={32}
+          className="h-8 w-8 rounded-md object-cover"
+        />
+      ) : (
+        <div className="h-8 w-8 rounded-md bg-muted flex items-center justify-center">
           <svg
-            className="h-6 w-6 text-muted-foreground"
+            className="h-4 w-4 text-muted-foreground"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -38,50 +42,19 @@ export function Header() {
               d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
             />
           </svg>
-        </AvatarFallback>
-      </Avatar>
+        </div>
+      )}
     </>
   );
 
-  const handleSignOut = async () => {
-    await signOut({ callbackUrl: "/" });
-  };
-
   return (
-    <header className="flex items-center justify-between px-6 py-2 border-b">
-      <Link href="/home" className="text-4xl font-bold tracking-tight text-primary hover:opacity-80 transition-opacity">
-        curio
+    <header className="flex items-center justify-between px-6 py-1.5 border-b">
+      <Link href="/home" className="hover:opacity-80 transition-opacity">
+        <Image src="/CurioLogo.png" alt="Curio" width={300} height={100} priority className="h-6 w-auto" />
       </Link>
-      {isProfilePage ? (
-        <div className="flex items-center gap-3">{identity}</div>
-      ) : (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button
-              type="button"
-              className="flex items-center gap-3 rounded-full px-2 py-1 transition hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            >
-              {identity}
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-48">
-            <DropdownMenuItem asChild>
-              <Link href="/profile" className="w-full">
-                Profile
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              onSelect={(event) => {
-                event.preventDefault();
-                void handleSignOut();
-              }}
-            >
-              Sign out
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      )}
+      <Link href="/profile" className="flex items-center gap-3 px-2 py-1 transition hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+        {identity}
+      </Link>
     </header>
   );
 }
