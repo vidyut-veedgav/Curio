@@ -1,7 +1,6 @@
 export function Content() {
   return (
     <div className="p-8">
-      <h1 className="text-3xl font-bold mb-4">Module Content</h1>
       <p className="text-muted-foreground mb-4">
         Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod
         tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim

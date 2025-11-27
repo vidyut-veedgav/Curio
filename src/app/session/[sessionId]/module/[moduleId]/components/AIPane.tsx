@@ -1,10 +1,21 @@
 "use client";
 
-import { ArrowUp, X } from "lucide-react";
+import { ArrowUp, X, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupButton,
+  InputGroupTextarea,
+} from "@/components/ui/input-group";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { ChatMessage } from "./ChatMessage";
 import { useState, useRef, useEffect, useMemo } from "react";
 import { useAIChat, useGetMessages } from "../hooks";
@@ -18,6 +29,7 @@ interface AIPaneProps {
 
 export function AIPane({ moduleId, open, onOpenChange }: AIPaneProps) {
   const [inputValue, setInputValue] = useState("");
+  const [selectedModel, setSelectedModel] = useState("gpt-4o-mini");
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   // Fetch chat history
@@ -67,7 +79,7 @@ export function AIPane({ moduleId, open, onOpenChange }: AIPaneProps) {
     setInputValue("");
   };
 
-  // Handle Enter key (without shift)
+  // Handle Enter key (without shift for new line)
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
@@ -127,7 +139,7 @@ export function AIPane({ moduleId, open, onOpenChange }: AIPaneProps) {
                   ))
                 )}
                 {error && (
-                  <div className="text-center text-destructive text-sm py-2">
+                  <div className="text-center text-destructive text-sm py-3">
                     Error: {error}
                   </div>
                 )}
@@ -139,25 +151,48 @@ export function AIPane({ moduleId, open, onOpenChange }: AIPaneProps) {
         {/* Message Input Area */}
         <div className="flex justify-center pb-6">
           <div className="w-full max-w-2xl px-6">
-            <div className="relative">
-              <Textarea
+            <InputGroup className="min-h-[60px]">
+              <InputGroupTextarea
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="Ask a follow-up question..."
-                className="w-full !text-base resize-none rounded-xl px-5 py-3 pr-12 shadow-sm focus-visible:ring-0 focus-visible:ring-offset-0 min-h-[72px] max-h-[200px]"
-                rows={1}
+                placeholder="Ask, Search or Chat..."
                 disabled={isStreaming}
+                className="min-h-0"
               />
-              <Button
-                size="icon"
-                className="absolute right-2 bottom-2 h-8 w-8 rounded-full shrink-0"
-                onClick={handleSendMessage}
-                disabled={!inputValue.trim() || isStreaming}
-              >
-                <ArrowUp className="h-4 w-4" />
-              </Button>
-            </div>
+              <InputGroupAddon align="block-end">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <InputGroupButton variant="ghost">{selectedModel}</InputGroupButton>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent
+                    side="top"
+                    align="start"
+                    className="[--radius:0.95rem]"
+                  >
+                    <DropdownMenuItem onClick={() => setSelectedModel("gpt-4o-mini")}>
+                      gpt-4o-mini
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setSelectedModel("gpt-4o")}>
+                      gpt-4o
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setSelectedModel("gpt-4-turbo")}>
+                      gpt-4-turbo
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+                <InputGroupButton
+                  variant="default"
+                  className="rounded-full ml-auto"
+                  size="icon-xs"
+                  onClick={handleSendMessage}
+                  disabled={!inputValue.trim() || isStreaming}
+                >
+                  <ArrowUp />
+                  <span className="sr-only">Send</span>
+                </InputGroupButton>
+              </InputGroupAddon>
+            </InputGroup>
           </div>
         </div>
     </div>

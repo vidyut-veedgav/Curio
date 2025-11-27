@@ -20,13 +20,15 @@ export default function ModulePage({ params }: ModulePageProps) {
   return (
     <div className="h-screen bg-background flex flex-col overflow-hidden">
       <Header />
-      <SessionHeader sessionId={sessionId} moduleId={moduleId} />
 
       {/* Main Content Area - Flexbox layout */}
       <div className="flex-1 flex overflow-hidden">
-        {/* Left: Module Content */}
-        <div className="flex-1 overflow-auto transition-all duration-300 ease-in-out">
-          <Content />
+        {/* Left: Session Header + Module Content */}
+        <div className="flex-1 flex flex-col overflow-hidden transition-all duration-300 ease-in-out">
+          <SessionHeader sessionId={sessionId} moduleId={moduleId} />
+          <div className="flex-1 overflow-auto">
+            <Content />
+          </div>
         </div>
 
         {/* Right: AI Chat Pane */}
