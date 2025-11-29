@@ -141,3 +141,28 @@ export function useGetModule(moduleId: string) {
     enabled: !!moduleId,
   });
 }
+
+/**
+ * Custom hook to manage module overview sidebar collapse state
+ * Persists user preference to localStorage per module
+ */
+export function useModuleOverviewCollapse(moduleId: string) {
+  const [isCollapsed, setIsCollapsed] = useState<boolean>(() => {
+    // Client-side only - check localStorage
+    if (typeof window === 'undefined') return false;
+    const stored = localStorage.getItem(`module-overview-${moduleId}`);
+    return stored === 'true'; // Default to expanded (false)
+  });
+
+  const toggleCollapse = useCallback(() => {
+    setIsCollapsed(prev => {
+      const newValue = !prev;
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(`module-overview-${moduleId}`, String(newValue));
+      }
+      return newValue;
+    });
+  }, [moduleId]);
+
+  return { isCollapsed, toggleCollapse };
+}

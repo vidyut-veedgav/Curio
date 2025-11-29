@@ -9,13 +9,6 @@ export async function getModules(sessionId: string) {
   return prisma.module.findMany({
     where: { learningSessionId: sessionId },
     orderBy: { order: 'asc' },
-    include: {
-      chatMessages: {
-        select: {
-          id: true,
-        },
-      },
-    },
   });
 }
 

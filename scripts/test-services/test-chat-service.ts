@@ -5,7 +5,7 @@
  * Run with: npm run test:chat
  */
 
-import { getMessages, sendMessage, Message } from '@/lib/actions/chatActions';
+import { getMessages, addMessage, Message } from '@/lib/actions/chatActions';
 import { prisma } from '@/lib/db';
 
 // Helper function to print formatted output
@@ -73,8 +73,8 @@ async function testChatService() {
       printConversation(existingMessages);
     }
 
-    // Test 2: sendMessage() - Send user message and get AI response
-    console.log('\nTEST 2: sendMessage() - Send User Message (Triggers AI Response)');
+    // Test 2: addMessage() - Send user message and get AI response
+    console.log('\nTEST 2: addMessage() - Send User Message (Triggers AI Response)');
     const userMessage1 = {
       moduleId,
       content: 'Can you give me a quick summary of what I need to learn in this module?',
@@ -84,7 +84,7 @@ async function testChatService() {
     console.log('Sending message and generating AI response...');
 
     const startTime1 = Date.now();
-    const response1 = await sendMessage(userMessage1);
+    const response1 = await addMessage(userMessage1);
     const endTime1 = Date.now();
 
     printResult(`Output - User Message + AI Response (${endTime1 - startTime1}ms)`, {
@@ -100,8 +100,8 @@ async function testChatService() {
         : null,
     });
 
-    // Test 3: sendMessage() - Send another user message
-    console.log('\nTEST 3: sendMessage() - Follow-up User Message');
+    // Test 3: addMessage() - Send another user message
+    console.log('\nTEST 3: addMessage() - Follow-up User Message');
     const userMessage2 = {
       moduleId,
       content: 'What would you recommend I focus on first?',
@@ -111,7 +111,7 @@ async function testChatService() {
     console.log('Sending message and generating AI response...');
 
     const startTime2 = Date.now();
-    const response2 = await sendMessage(userMessage2);
+    const response2 = await addMessage(userMessage2);
     const endTime2 = Date.now();
 
     printResult(`Output - User Message + AI Response (${endTime2 - startTime2}ms)`, {
@@ -138,15 +138,15 @@ async function testChatService() {
 
     printConversation(updatedMessages);
 
-    // Test 5: sendMessage() - Send assistant message directly (no auto-response)
-    console.log('\nTEST 5: sendMessage() - Send Assistant Message Directly (No Auto-Response)');
+    // Test 5: addMessage() - Send assistant message directly (no auto-response)
+    console.log('\nTEST 5: addMessage() - Send Assistant Message Directly (No Auto-Response)');
     const assistantMessageDirect = {
       moduleId,
       content: 'This is a manually added assistant message for testing purposes.',
       role: 'assistant' as const,
     };
     console.log('Input:', assistantMessageDirect);
-    const response3 = await sendMessage(assistantMessageDirect);
+    const response3 = await addMessage(assistantMessageDirect);
 
     printResult('Output - Assistant Message Added (No Auto-Response)', {
       userMessage: {
@@ -210,7 +210,7 @@ async function testChatService() {
       console.log(`Current message count: ${currentMessages.length}`);
 
       try {
-        await sendMessage({
+        await addMessage({
           moduleId: limitTestModuleId,
           content: 'This should fail',
           role: 'user',
