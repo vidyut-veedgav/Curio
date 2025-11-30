@@ -58,9 +58,59 @@ const config: Config = {
   				'4': 'hsl(var(--chart-4))',
   				'5': 'hsl(var(--chart-5))'
   			}
-  		}
+  		},
+  		typography: {
+  			DEFAULT: {
+  				css: {
+  					maxWidth: 'none',
+  					p: {
+  						marginTop: '1.5rem',
+  						marginBottom: '1.5rem',
+  					},
+  					'p:first-child': {
+  						marginTop: '0',
+  					},
+  					'p:last-child': {
+  						marginBottom: '0',
+  					},
+  					h1: {
+  						marginTop: '2rem',
+  						marginBottom: '1.5rem',
+  					},
+  					'h1:first-child': {
+  						marginTop: '0',
+  					},
+  					h2: {
+  						marginTop: '2rem',
+  						marginBottom: '1.5rem',
+  					},
+  					'h2:first-child': {
+  						marginTop: '0',
+  					},
+  					h3: {
+  						marginTop: '1.75rem',
+  						marginBottom: '1.25rem',
+  					},
+  					'h3:first-child': {
+  						marginTop: '0',
+  					},
+  					ul: {
+  						marginTop: '1.5rem',
+  						marginBottom: '1.5rem',
+  					},
+  					ol: {
+  						marginTop: '1.5rem',
+  						marginBottom: '1.5rem',
+  					},
+  					li: {
+  						marginTop: '0.75rem',
+  						marginBottom: '0.75rem',
+  					},
+  				},
+  			},
+  		},
   	}
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [require("tailwindcss-animate"), require("@tailwindcss/typography")],
 };
 export default config;

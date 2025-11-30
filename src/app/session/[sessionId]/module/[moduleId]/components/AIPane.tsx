@@ -1,9 +1,10 @@
 "use client";
 
-import { ArrowUp, X, ChevronDown } from "lucide-react";
+import { ArrowUp, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
+import Image from "next/image";
 import {
   InputGroup,
   InputGroupAddon,
@@ -17,6 +18,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ChatMessage } from "./ChatMessage";
+import { AIPaneHeader } from "./AIPaneHeader";
 import { useState, useRef, useEffect, useMemo } from "react";
 import { useAIChat, useGetMessages } from "../hooks";
 import { cn } from "@/lib/utils";
@@ -88,27 +90,42 @@ export function AIPane({ moduleId, open, onOpenChange }: AIPaneProps) {
   };
 
   return (
-    <div
-      className={cn(
-        "w-full sm:max-w-2xl bg-background border-l transition-all duration-300 ease-in-out flex flex-col",
-        open ? "flex" : "hidden"
+    <>
+      {/* Collapsed sidebar with AI button */}
+      {!open && (
+        <div className="w-12 bg-background border-l flex items-start justify-center pt-4">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => onOpenChange(true)}
+            className="h-8 w-8 group"
+          >
+            <Image
+              src="/icons/ai.png"
+              alt="AI"
+              width={20}
+              height={20}
+              className="group-hover:brightness-0 group-hover:invert transition-all"
+            />
+            <span className="sr-only">Open AI Tutor</span>
+          </Button>
+        </div>
       )}
-    >
-      {/* Close button */}
-      <Button
-        variant="ghost"
-        size="icon"
-        className="absolute right-4 top-4 rounded-sm opacity-70 hover:opacity-100 z-10"
-        onClick={() => onOpenChange(false)}
+
+      {/* Expanded AI Pane */}
+      <div
+        className={cn(
+          "bg-background border-l flex flex-col overflow-hidden transition-all duration-500 ease-in-out",
+          open ? "w-full sm:w-[42rem]" : "w-0"
+        )}
       >
-        <X className="h-4 w-4" />
-        <span className="sr-only">Close</span>
-      </Button>
+        {/* Header */}
+        <AIPaneHeader onClose={() => onOpenChange(false)} />
 
       {/* Chat Messages Area */}
       <ScrollArea className="flex-1" ref={scrollAreaRef}>
           <div className="flex justify-center py-6">
-            <div className="w-full max-w-2xl px-6">
+            <div className="w-[calc(100%-1rem)] max-w-2xl px-6">
               <div className="space-y-4">
                 {getMessagesQuery.isLoading ? (
                   <div className="space-y-8 py-6">
@@ -124,10 +141,6 @@ export function AIPane({ moduleId, open, onOpenChange }: AIPaneProps) {
                       <Skeleton className="h-4 w-2/3" />
                       <Skeleton className="h-4 w-4/5" />
                     </div>
-                  </div>
-                ) : displayMessages.length === 0 ? (
-                  <div className="text-center text-muted-foreground py-12">
-                    <p>Start a conversation by asking a question below.</p>
                   </div>
                 ) : (
                   displayMessages.map((message, index) => (
@@ -156,27 +169,27 @@ export function AIPane({ moduleId, open, onOpenChange }: AIPaneProps) {
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="Ask, Search or Chat..."
+                placeholder="Ask Curio a question..."
                 disabled={isStreaming}
-                className="min-h-0"
+                className="min-h-0 !text-base pl-4 pt-4"
               />
               <InputGroupAddon align="block-end">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <InputGroupButton variant="ghost">{selectedModel}</InputGroupButton>
+                    <InputGroupButton variant="ghost" className="h-8">{selectedModel}</InputGroupButton>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent
                     side="top"
                     align="start"
-                    className="[--radius:0.95rem]"
+                    className="[--radius:0.5rem]"
                   >
-                    <DropdownMenuItem onClick={() => setSelectedModel("gpt-4o-mini")}>
+                    <DropdownMenuItem className="h-8" onClick={() => setSelectedModel("gpt-4o-mini")}>
                       gpt-4o-mini
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setSelectedModel("gpt-4o")}>
+                    <DropdownMenuItem className="h-8" onClick={() => setSelectedModel("gpt-4o")}>
                       gpt-4o
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setSelectedModel("gpt-4-turbo")}>
+                    <DropdownMenuItem className="h-8" onClick={() => setSelectedModel("gpt-4-turbo")}>
                       gpt-4-turbo
                     </DropdownMenuItem>
                   </DropdownMenuContent>
@@ -195,6 +208,7 @@ export function AIPane({ moduleId, open, onOpenChange }: AIPaneProps) {
             </InputGroup>
           </div>
         </div>
-    </div>
+      </div>
+    </>
   );
 }

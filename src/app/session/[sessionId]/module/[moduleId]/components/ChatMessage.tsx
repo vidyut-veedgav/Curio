@@ -41,7 +41,7 @@ const ChatMessage = React.memo(React.forwardRef<HTMLDivElement, ChatMessageProps
             className
           )}
         >
-          <div className="text-base leading-relaxed prose prose-sm max-w-none dark:prose-invert">
+          <div className="prose prose-base dark:prose-invert max-w-none">
             <MarkdownRenderer>{content}</MarkdownRenderer>
           </div>
         </div>

@@ -15,7 +15,7 @@ interface ModulePageProps {
 
 export default function ModulePage({ params }: ModulePageProps) {
   const { sessionId, moduleId } = use(params);
-  const [isPaneOpen, setIsPaneOpen] = useState(true);
+  const [isPaneOpen, setIsPaneOpen] = useState(false);
 
   return (
     <div className="h-screen bg-background flex flex-col overflow-hidden">

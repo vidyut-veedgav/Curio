@@ -34,10 +34,6 @@ const markdownComponents = {
       </code>
     );
   },
-  p(props: any) {
-    const { children: pChildren, ...rest } = props;
-    return <p {...rest}>{pChildren}</p>;
-  },
 };
 
 export default function MarkdownRenderer({ children }: MarkdownRendererProps) {
