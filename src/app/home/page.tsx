@@ -89,7 +89,7 @@ export default function HomePage() {
           <div className="p-6 h-full overflow-y-auto">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-semibold">Learning Sessions</h2>
-              <Button variant="ghost" size="icon" onClick={() => setSidebarOpen(false)} className="h-10 w-10">
+              <Button variant="ghost" size="icon" onClick={() => setSidebarOpen(false)} className="h-8 w-8">
                 <X className="h-5 w-5" />
               </Button>
             </div>
@@ -119,8 +119,8 @@ export default function HomePage() {
           {/* Toggle Button */}
           {!sidebarOpen && (
             <div className="absolute top-6 left-6">
-              <Button variant="outline" size="icon" onClick={() => setSidebarOpen(true)} className="h-10 w-10">
-                <Menu className="h-6 w-6" />
+              <Button variant="outline" size="icon" onClick={() => setSidebarOpen(true)} className="h-8 w-8">
+                <Menu className="h-2 w-2" />
               </Button>
             </div>
           )}
