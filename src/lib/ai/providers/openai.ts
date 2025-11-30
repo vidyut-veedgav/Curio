@@ -1,13 +1,13 @@
 import OpenAI from "openai";
-import { LLMProvider, Message, CompletionOptions } from "./../types";
+import { LLMProvider } from "./../LLMProvider";
+import { Message, CompletionOptions } from "./../types";
 
-export class OpenAIProvider implements LLMProvider {
+export class OpenAIProvider extends LLMProvider {
 	private client: OpenAI;
-	private model: string;
 
 	constructor(model = "gpt-4-turbo-preview") {
+		super(model);
 		this.client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-		this.model = model;
 	}
 
 	async complete(
