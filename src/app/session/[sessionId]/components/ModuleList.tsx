@@ -1,4 +1,3 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ModuleCard } from './ModuleCard';
 
 interface Module {
@@ -16,12 +15,10 @@ interface ModuleListProps {
 
 export function ModuleList({ sessionId, modules }: ModuleListProps) {
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Learning Modules</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-3">
+    <div>
+      {/* <h2 className="text-xl font-semibold mb-4">Learning Modules</h2> */}
+      <div>
+        <div className="space-y-10">
           {modules.map((module) => (
             <ModuleCard
               key={module.id}
@@ -40,7 +37,7 @@ export function ModuleList({ sessionId, modules }: ModuleListProps) {
             <p>No modules available for this session.</p>
           </div>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

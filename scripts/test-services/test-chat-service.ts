@@ -5,9 +5,8 @@
  * Run with: npm run test:chat
  */
 
-import { getMessages, sendMessage } from '@/lib/services/chatService';
+import { getMessages, sendMessage, Message } from '@/lib/actions/chatActions';
 import { prisma } from '@/lib/db';
-import { ChatMessageAuthor } from '@prisma/client';
 
 // Helper function to print formatted output
 function printResult(label: string, data: any) {
@@ -24,14 +23,14 @@ function printError(label: string, error: any) {
   console.log(`Error: ${error.message}`);
 }
 
-function printConversation(messages: any[]) {
+function printConversation(messages: Message[]) {
   console.log(`\n${'='.repeat(60)}`);
   console.log('Conversation History');
   console.log('='.repeat(60));
 
   messages.forEach((msg, index) => {
-    const prefix = msg.author === ChatMessageAuthor.User ? '[User]' : '[AI]';
-    console.log(`\n${prefix} ${msg.author} (Message ${index + 1}):`);
+    const prefix = msg.role === 'user' ? '[User]' : '[AI]';
+    console.log(`\n${prefix} (Message ${index + 1}):`);
     console.log('-'.repeat(60));
     console.log(msg.content);
   });
@@ -51,7 +50,6 @@ async function testChatService() {
             name: true,
           },
         },
-        chatMessages: true,
       },
     });
 
@@ -80,7 +78,7 @@ async function testChatService() {
     const userMessage1 = {
       moduleId,
       content: 'Can you give me a quick summary of what I need to learn in this module?',
-      author: ChatMessageAuthor.User,
+      role: 'user' as const,
     };
     console.log('Input:', userMessage1);
     console.log('Sending message and generating AI response...');
@@ -91,17 +89,13 @@ async function testChatService() {
 
     printResult(`Output - User Message + AI Response (${endTime1 - startTime1}ms)`, {
       userMessage: {
-        id: response1.userMessage.id,
+        role: response1.userMessage.role,
         content: response1.userMessage.content,
-        author: response1.userMessage.author,
-        order: response1.userMessage.order,
       },
       aiMessage: response1.aiMessage
         ? {
-            id: response1.aiMessage.id,
+            role: response1.aiMessage.role,
             content: response1.aiMessage.content,
-            author: response1.aiMessage.author,
-            order: response1.aiMessage.order,
           }
         : null,
     });
@@ -111,7 +105,7 @@ async function testChatService() {
     const userMessage2 = {
       moduleId,
       content: 'What would you recommend I focus on first?',
-      author: ChatMessageAuthor.User,
+      role: 'user' as const,
     };
     console.log('Input:', userMessage2);
     console.log('Sending message and generating AI response...');
@@ -122,13 +116,13 @@ async function testChatService() {
 
     printResult(`Output - User Message + AI Response (${endTime2 - startTime2}ms)`, {
       userMessage: {
+        role: response2.userMessage.role,
         content: response2.userMessage.content,
-        order: response2.userMessage.order,
       },
       aiMessage: response2.aiMessage
         ? {
+            role: response2.aiMessage.role,
             content: response2.aiMessage.content,
-            order: response2.aiMessage.order,
           }
         : null,
     });
@@ -144,23 +138,23 @@ async function testChatService() {
 
     printConversation(updatedMessages);
 
-    // Test 5: sendMessage() - Send AI message directly (no auto-response)
-    console.log('\nTEST 5: sendMessage() - Send AI Message Directly (No Auto-Response)');
-    const aiMessageDirect = {
+    // Test 5: sendMessage() - Send assistant message directly (no auto-response)
+    console.log('\nTEST 5: sendMessage() - Send Assistant Message Directly (No Auto-Response)');
+    const assistantMessageDirect = {
       moduleId,
-      content: 'This is a manually added AI message for testing purposes.',
-      author: ChatMessageAuthor.AI,
+      content: 'This is a manually added assistant message for testing purposes.',
+      role: 'assistant' as const,
     };
-    console.log('Input:', aiMessageDirect);
-    const response3 = await sendMessage(aiMessageDirect);
+    console.log('Input:', assistantMessageDirect);
+    const response3 = await sendMessage(assistantMessageDirect);
 
-    printResult('Output - AI Message Added (No Auto-Response)', {
+    printResult('Output - Assistant Message Added (No Auto-Response)', {
       userMessage: {
+        role: response3.userMessage.role,
         content: response3.userMessage.content,
-        author: response3.userMessage.author,
       },
       aiMessage: response3.aiMessage,
-      note: 'No AI auto-response because author was AI, not User',
+      note: 'No AI auto-response because role was assistant, not user',
     });
 
     // Test 6: Message limit test (create a module with many messages)
@@ -182,6 +176,7 @@ async function testChatService() {
               name: 'Limit Test Module',
               overview: 'Module for testing message limits',
               order: 0,
+              messages: [],
             },
           },
         },
@@ -192,52 +187,46 @@ async function testChatService() {
 
       const limitTestModuleId = limitTestSession.modules[0].id;
 
-      // Add 98 messages (leaving room for 2 more: user + AI response)
-      console.log('Adding 98 messages to approach the limit...');
-      const messagesToCreate = [];
-      for (let i = 0; i < 98; i++) {
+      // Add 100 messages to reach the limit
+      console.log('Adding 100 messages to reach the limit...');
+      const messagesToCreate: Message[] = [];
+      for (let i = 0; i < 100; i++) {
         messagesToCreate.push({
-          moduleId: limitTestModuleId,
+          role: i % 2 === 0 ? 'user' : 'assistant',
           content: `Test message ${i + 1}`,
-          author: i % 2 === 0 ? ChatMessageAuthor.User : ChatMessageAuthor.AI,
-          order: i,
         });
       }
 
-      await prisma.chatMessage.createMany({
-        data: messagesToCreate,
+      await prisma.module.update({
+        where: { id: limitTestModuleId },
+        data: { messages: messagesToCreate },
       });
 
-      console.log('Added 98 messages (limit is 100)');
+      console.log('Added 100 messages (limit is 100)');
 
-      // Try to add one more user message (should succeed: 99 user + 100 AI = exactly at limit)
-      console.log('\nAttempting to add message 99 (should succeed)...');
-      const messageCount1 = await prisma.chatMessage.count({
-        where: { moduleId: limitTestModuleId },
-      });
-      console.log(`Current message count: ${messageCount1}`);
+      // Try to add one more user message (should fail)
+      console.log('\nAttempting to add message 101 (should fail)...');
+      const currentMessages = await getMessages(limitTestModuleId);
+      console.log(`Current message count: ${currentMessages.length}`);
 
       try {
         await sendMessage({
           moduleId: limitTestModuleId,
-          content: 'This should be the last valid message',
-          author: ChatMessageAuthor.User,
+          content: 'This should fail',
+          role: 'user',
         });
         console.log('ERROR: Expected this to fail at 100 messages, but it succeeded!');
       } catch (error: any) {
         printResult('Output - Message Limit Enforced (Expected)', {
           message: error.message,
           status: 'Test passed - message limit working',
-          currentCount: messageCount1,
+          currentCount: currentMessages.length,
           limit: 100,
         });
       }
 
       // Clean up test session
       console.log('\nCleaning up test session...');
-      await prisma.chatMessage.deleteMany({
-        where: { moduleId: limitTestModuleId },
-      });
       await prisma.module.delete({
         where: { id: limitTestModuleId },
       });
