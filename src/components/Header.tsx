@@ -50,7 +50,7 @@ export function Header() {
   return (
     <header className="flex items-center justify-between px-6 py-1.5 border-b">
       <Link href="/home" className="hover:opacity-80 transition-opacity">
-        <Image src="/CurioLogo.png" alt="Curio" width={300} height={100} priority className="h-6 w-auto" />
+        <Image src="/CurioLogo.png" alt="Curio" width={600} height={200} priority className="h-6 w-auto" />
       </Link>
       <Link href="/profile" className="flex items-center gap-3 px-2 py-1 transition hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
         {identity}

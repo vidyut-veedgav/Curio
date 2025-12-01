@@ -12,8 +12,12 @@ const geist = Geist({
 });
 
 export const metadata: Metadata = {
-  title: "Curio - Personalized Learning",
-  description: "AI-powered personalized education platform"
+  title: "Curio",
+  description: "AI-powered personalized education platform",
+  icons: {
+    icon: "/CurioIcon.png",
+    apple: "/CurioIcon.png",
+  }
 }
 
 export default function RootLayout({
