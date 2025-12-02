@@ -2,7 +2,7 @@
 
 import { Header } from "@/components/Header";
 import { SessionHeader } from "./components/SessionHeader";
-import { AIPane } from "./components/AIPane";
+import { AIPane } from "./components/ai_pane/AIPane";
 import { Content } from "./components/Content";
 import { use, useState } from "react";
 
