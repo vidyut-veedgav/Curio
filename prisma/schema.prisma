@@ -43,9 +43,11 @@ model Module {
   learningSessionId String         @map("learning_session_id") @db.Uuid
   name             String
   overview         String
+  content          String          @default("")
   order            Int
   isComplete       Boolean         @default(false) @map("is_complete")
   messages         Json            @default("[]")
+  currentFollowUps Json            @default("[]")
   learningSession  LearningSession @relation(fields: [learningSessionId], references: [id])
 
   @@map("module")

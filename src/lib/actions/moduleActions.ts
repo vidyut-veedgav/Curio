@@ -9,12 +9,15 @@ export async function getModules(sessionId: string) {
   return prisma.module.findMany({
     where: { learningSessionId: sessionId },
     orderBy: { order: 'asc' },
-    include: {
-      chatMessages: {
-        select: {
-          id: true,
-        },
-      },
+    select: {
+      id: true,
+      name: true,
+      overview: true,
+      order: true,
+      isComplete: true,
+      messages: true,
+      currentFollowUps: true,
+      learningSessionId: true,
     },
   });
 }
@@ -25,7 +28,16 @@ export async function getModules(sessionId: string) {
 export async function getModuleById(moduleId: string) {
   return prisma.module.findUnique({
     where: { id: moduleId },
-    include: {
+    select: {
+      id: true,
+      name: true,
+      overview: true,
+      content: true,
+      order: true,
+      isComplete: true,
+      messages: true,
+      currentFollowUps: true,
+      learningSessionId: true,
       learningSession: {
         select: {
           id: true,

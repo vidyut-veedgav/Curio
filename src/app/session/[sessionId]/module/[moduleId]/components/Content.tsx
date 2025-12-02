@@ -1,24 +1,50 @@
-export function Content() {
+'use client';
+
+import { useGetModule } from '../hooks';
+
+interface ContentProps {
+  moduleId: string;
+}
+
+export function Content({ moduleId }: ContentProps) {
+  const getModuleQuery = useGetModule(moduleId);
+
+  if (getModuleQuery.isLoading) {
+    return (
+      <div className="flex justify-center">
+        <div className="w-full max-w-4xl px-6 py-8">
+          <p className="text-muted-foreground text-center">Loading module content...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (getModuleQuery.error) {
+    return (
+      <div className="flex justify-center">
+        <div className="w-full max-w-4xl px-6 py-8">
+          <p className="text-destructive text-center">Error loading module content</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!getModuleQuery.data) {
+    return (
+      <div className="flex justify-center">
+        <div className="w-full max-w-4xl px-6 py-8">
+          <p className="text-muted-foreground text-center">Module not found</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex justify-center">
       <div className="w-full max-w-4xl px-6 py-8">
-        <p className="text-muted-foreground mb-4">
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod
-          tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim
-          veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea
-          commodo consequat.
-        </p>
-        <p className="text-muted-foreground mb-4">
-          Duis aute irure dolor in reprehenderit in voluptate velit esse cillum
-          dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non
-          proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-        </p>
-        <p className="text-muted-foreground">
-          Sed ut perspiciatis unde omnis iste natus error sit voluptatem
-          accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab
-          illo inventore veritatis et quasi architecto beatae vitae dicta sunt
-          explicabo.
-        </p>
+        <div className="text-muted-foreground whitespace-pre-wrap">
+          {getModuleQuery.data.content}
+        </div>
       </div>
     </div>
   );

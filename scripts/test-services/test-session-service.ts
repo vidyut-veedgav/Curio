@@ -7,8 +7,8 @@
 
 import {
   createLearningSession,
-  getSessions,
-  getSessionById,
+  getLearningSessions,
+  getLearningSessionById,
 } from '@/lib/actions/sessionActions';
 import { prisma } from '@/lib/db';
 
@@ -45,7 +45,7 @@ async function testSessionService() {
     // Test 1: getSessions() - Get all sessions for user
     console.log('TEST 1: getSessions() - Get All User Sessions');
     console.log('Input:', { userId });
-    const sessions = await getSessions(userId);
+    const sessions = await getLearningSessions(userId);
     printResult(`Output - Found ${sessions.length} Sessions`, sessions);
 
     // Test 2: getSessionById() - Get specific session
@@ -53,7 +53,7 @@ async function testSessionService() {
       console.log('\nTEST 2: getSessionById() - Get Specific Session');
       const sessionId = sessions[0].id;
       console.log('Input:', { sessionId });
-      const session = await getSessionById(sessionId);
+      const session = await getLearningSessionById(sessionId);
       printResult('Output - Session Details with Modules', session);
     }
 
