@@ -1,10 +1,10 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useSocket } from '@/hooks/useSocket';
 import { Message, getMessages, createFollowUpQuestions } from '@/lib/actions/chatActions';
-import { getModuleById, addCurrentFollowUps, getCurrentFollowUps } from '@/lib/actions/moduleActions';
+import { getModuleById, addCurrentFollowUps, getCurrentFollowUps, markModuleComplete, getModules } from '@/lib/actions/moduleActions';
 
 interface UseAIChatOptions {
   moduleId: string;
@@ -189,5 +189,28 @@ export function useGetCurrentFollowUps(moduleId: string) {
 export function useAddFollowUps(moduleId: string) {
   return useMutation({
     mutationFn: (followUps: unknown) => addCurrentFollowUps(moduleId, followUps),
+  });
+}
+
+/**
+ * Custom hook to mark a module as complete
+ * Invalidates relevant queries to refresh UI state
+ */
+export function useMarkModuleComplete() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (moduleId: string) => markModuleComplete(moduleId),
+    onSuccess: (data, moduleId) => {
+      // Invalidate module queries to refresh completion status
+      queryClient.invalidateQueries({ queryKey: ['module', moduleId] });
+
+      // Invalidate modules query to refresh the list
+      if (data.module.learningSessionId) {
+        queryClient.invalidateQueries({ queryKey: ['modules', data.module.learningSessionId] });
+        // Invalidate session query to refresh module completion status on session page
+        queryClient.invalidateQueries({ queryKey: ['session', data.module.learningSessionId] });
+      }
+    },
   });
 }
