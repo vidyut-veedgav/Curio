@@ -2,6 +2,7 @@
 
 import { prisma } from '@/lib/db';
 import { OpenAIProvider } from '@/lib/ai/providers/openai';
+import { getPrompt } from '@/lib/prompts';
 
 const openai = new OpenAIProvider('gpt-4o-mini');
 
@@ -120,29 +121,21 @@ async function generateModuleContent(
   complexity: string
 ): Promise<string> {
   try {
+    const prompt = getPrompt('moduleContentGenerator.md', {
+      complexity,
+      moduleName,
+      topic,
+    });
+
     const responseContent = await openai.complete(
       [
         {
           role: 'system',
-          content: `You are an expert curriculum content writer. Create detailed module overviews that guide learners effectively.
-
-Your response should be 2-3 paragraphs that include:
-- A brief introduction to the module's focus
-- 3-5 specific learning objectives
-- Key concepts and skills that will be covered
-- How this fits into the broader learning path
-
-Write at a ${complexity} level. Return only the overview text, no JSON or formatting.`,
+          content: prompt.system,
         },
         {
           role: 'user',
-          content: `Write a detailed overview for this module:
-
-Module: ${moduleName}
-Topic: ${topic}
-Level: ${complexity}
-
-Create engaging, clear content that helps learners understand what they'll gain from this module.`,
+          content: prompt.user!,
         },
       ],
       {
@@ -177,50 +170,22 @@ async function generateModules(
 
   try {
     // Step 1: Generate session title, description, and module structure in a single call
+    const prompt = getPrompt('sessionStructureGenerator.md', {
+      complexity,
+      length,
+      topic,
+      moduleCount,
+    });
+
     const responseContent = await openai.complete(
       [
         {
           role: 'system',
-          content: `You are an expert curriculum designer. Create a structured learning path with a session title, description, and clear module titles.
-
-Return a JSON object with this exact structure:
-{
-  "sessionTitle": "A concise, engaging title for the learning session",
-  "sessionDescription": "A 2-3 sentence overview of what this learning session covers and what the learner will achieve",
-  "modules": [
-    {
-      "name": "Module Title",
-      "order": 0
-    }
-  ]
-}
-
-The session title should:
-- Be concise (4-8 words)
-- Be engaging and clear
-- Accurately reflect the topic
-
-The session description should:
-- Summarize the overall learning journey
-- Highlight key outcomes and skills
-- Be engaging and motivating
-
-Each module name should:
-- Be clear and descriptive
-- Focus on a specific aspect of the topic
-- Build progressively in complexity
-- Be appropriate for ${complexity} level learners`,
+          content: prompt.system,
         },
         {
           role: 'user',
-          content: `Create a ${length} learning curriculum for: ${topic}
-
-Generate:
-1. A concise, engaging session title
-2. A compelling session description (2-3 sentences)
-3. ${moduleCount} module titles that progressively build knowledge
-
-Ensure each module has a clear focus and flows logically to the next.`,
+          content: prompt.user!,
         },
       ],
       {
