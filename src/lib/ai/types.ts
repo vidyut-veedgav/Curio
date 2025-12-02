@@ -10,6 +10,7 @@ export interface CompletionOptions {
     model?: string;
     temperature?: number;
     maxTokens?: number;
+    responseFormat?: 'text' | 'json_object';
 }
 
 export const providers: Record<string, () => LLMProvider> = {

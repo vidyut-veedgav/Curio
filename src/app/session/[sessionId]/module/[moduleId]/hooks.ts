@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useSocket } from '@/hooks/useSocket';
-import { Message, getMessages } from '@/lib/actions/chatActions';
+import { Message, getMessages, createFollowUpQuestions } from '@/lib/actions/chatActions';
 import { getModuleById } from '@/lib/actions/moduleActions';
 
 interface UseAIChatOptions {
@@ -139,5 +139,18 @@ export function useGetModule(moduleId: string) {
     queryKey: ['module', moduleId],
     queryFn: () => getModuleById(moduleId),
     enabled: !!moduleId,
+  });
+}
+
+/**
+ * Custom hook to generate follow-up questions based on conversation history
+ * Uses AI to create contextually relevant questions from the message history
+ */
+export function useCreateFollowUpQuestions(messages: Message[], numQuestions: number = 3) {
+  return useQuery({
+    queryKey: ['followUpQuestions', messages.length, numQuestions],
+    queryFn: () => createFollowUpQuestions(messages, numQuestions),
+    enabled: messages.length > 0,
+    staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
   });
 }

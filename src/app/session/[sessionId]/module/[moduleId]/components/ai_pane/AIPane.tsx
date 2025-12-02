@@ -7,8 +7,9 @@ import Image from "next/image";
 import { ChatMessage } from "./ChatMessage";
 import { AIPaneHeader } from "./AIPaneHeader";
 import { AIPaneInput } from "./AIPaneInput";
+import FollowUpQuestions from "./FollowUpQuestions";
 import { useRef, useEffect, useMemo } from "react";
-import { useAIChat, useGetMessages } from "../hooks";
+import { useAIChat, useGetMessages, useCreateFollowUpQuestions } from "../../hooks";
 import { cn } from "@/lib/utils";
 
 interface AIPaneProps {
@@ -46,6 +47,13 @@ export function AIPane({ moduleId, open, onOpenChange }: AIPaneProps) {
 
     return allMessages;
   }, [getMessagesQuery.data, messages, streamingMessage, isStreaming]);
+
+  // Generate follow-up questions based on conversation
+  const followUpQuestionsQuery = useCreateFollowUpQuestions(displayMessages);
+
+  const followUpQuestions = useMemo(() => {
+    return followUpQuestionsQuery.data?.questions || [];
+  }, [followUpQuestionsQuery.data]);
 
   // Auto-scroll to bottom when new messages arrive (not on every render)
   const messageCount = displayMessages.length;
@@ -124,6 +132,16 @@ export function AIPane({ moduleId, open, onOpenChange }: AIPaneProps) {
                 {error && (
                   <div className="text-center text-destructive text-sm py-3">
                     Error: {error}
+                  </div>
+                )}
+
+                {/* Follow-up Questions */}
+                {!getMessagesQuery.isLoading && !isStreaming && displayMessages.length > 0 && (
+                  <div className="mt-6">
+                    <FollowUpQuestions
+                      questions={followUpQuestions}
+                      isLoading={followUpQuestionsQuery.isLoading}
+                    />
                   </div>
                 )}
               </div>

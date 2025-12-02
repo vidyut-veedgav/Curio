@@ -19,6 +19,9 @@ export class OpenAIProvider extends LLMProvider {
 			messages,
 			temperature: options?.temperature,
 			max_tokens: options?.maxTokens,
+			...(options?.responseFormat === 'json_object' && {
+				response_format: { type: 'json_object' }
+			}),
 		});
 
 		return response.choices[0]?.message?.content || "";
