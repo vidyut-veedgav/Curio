@@ -27,7 +27,7 @@ export default function ModulePage({ params }: ModulePageProps) {
         <div className="flex-1 flex flex-col overflow-hidden transition-all duration-300 ease-in-out">
           <SessionHeader sessionId={sessionId} moduleId={moduleId} />
           <div className="flex-1 overflow-auto">
-            <Content />
+            <Content moduleId={moduleId} />
           </div>
         </div>
 

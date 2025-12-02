@@ -1,12 +1,12 @@
 'use client'
 
 import { useQuery } from "@tanstack/react-query";
-import { getSessionById } from "@/lib/actions/sessionActions";
+import { getLearningSessionById } from "@/lib/actions/sessionActions";
 
 export function useGetSession(sessionId: string) {
     return useQuery({
         queryKey: ['session', sessionId],
-        queryFn: () => getSessionById(sessionId),
+        queryFn: () => getLearningSessionById(sessionId),
         enabled: !!sessionId,
     });
 }

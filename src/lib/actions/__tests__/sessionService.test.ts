@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { createLearningSession, getSessions, getSessionById } from '../sessionActions';
+import { createLearningSession, getLearningSessions, getLearningSessionById } from '../sessionActions';
 import { prisma } from '@/lib/db';
 import { openai } from '@/lib/ai/providers/openai';
 
@@ -191,7 +191,7 @@ describe('sessionService', () => {
 
       vi.mocked(prisma.learningSession.findMany).mockResolvedValue(mockSessions as any);
 
-      const result = await getSessions('user-123');
+      const result = await getLearningSessions('user-123');
 
       expect(result).toEqual(mockSessions);
       expect(prisma.learningSession.findMany).toHaveBeenCalledWith({
@@ -232,7 +232,7 @@ describe('sessionService', () => {
 
       vi.mocked(prisma.learningSession.findUnique).mockResolvedValue(mockSession as any);
 
-      const result = await getSessionById('session-123');
+      const result = await getLearningSessionById('session-123');
 
       expect(result).toEqual(mockSession);
       expect(prisma.learningSession.findUnique).toHaveBeenCalledWith({
