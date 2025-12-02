@@ -95,3 +95,25 @@ export async function getModuleTitle(moduleId: string): Promise<string> {
 
   return module.name;
 }
+
+/**
+ * Gets the current follow-up questions for a module
+ */
+export async function getCurrentFollowUps(moduleId: string) {
+  const module = await prisma.module.findUnique({
+    where: { id: moduleId },
+    select: { currentFollowUps: true },
+  });
+
+  return module?.currentFollowUps;
+}
+
+/**
+ * Adds follow-up questions to a module's currentFollowUps field
+ */
+export async function addCurrentFollowUps(moduleId: string, followUps: unknown) {
+  return prisma.module.update({
+    where: { id: moduleId },
+    data: { currentFollowUps: followUps as any },
+  });
+}

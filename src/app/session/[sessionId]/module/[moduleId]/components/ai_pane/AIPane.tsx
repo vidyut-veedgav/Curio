@@ -9,7 +9,7 @@ import { AIPaneHeader } from "./AIPaneHeader";
 import { AIPaneInput } from "./AIPaneInput";
 import FollowUpQuestions from "./FollowUpQuestions";
 import { useRef, useEffect, useMemo } from "react";
-import { useAIChat, useGetMessages, useCreateFollowUpQuestions } from "../../hooks";
+import { useAIChat, useGetMessages, useGetCurrentFollowUps } from "../../hooks";
 import { cn } from "@/lib/utils";
 
 interface AIPaneProps {
@@ -48,11 +48,15 @@ export function AIPane({ moduleId, open, onOpenChange }: AIPaneProps) {
     return allMessages;
   }, [getMessagesQuery.data, messages, streamingMessage, isStreaming]);
 
-  // Generate follow-up questions based on conversation
-  const followUpQuestionsQuery = useCreateFollowUpQuestions(displayMessages);
+  // Fetch follow-up questions from database
+  const followUpQuestionsQuery = useGetCurrentFollowUps(moduleId);
 
   const followUpQuestions = useMemo(() => {
-    return followUpQuestionsQuery.data?.questions || [];
+    const questions = followUpQuestionsQuery.data;
+    if (Array.isArray(questions)) {
+      return questions as string[];
+    }
+    return [];
   }, [followUpQuestionsQuery.data]);
 
   // Auto-scroll to bottom when new messages arrive (not on every render)

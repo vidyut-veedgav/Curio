@@ -1,10 +1,10 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import { useSocket } from '@/hooks/useSocket';
 import { Message, getMessages, createFollowUpQuestions } from '@/lib/actions/chatActions';
-import { getModuleById } from '@/lib/actions/moduleActions';
+import { getModuleById, addCurrentFollowUps, getCurrentFollowUps } from '@/lib/actions/moduleActions';
 
 interface UseAIChatOptions {
   moduleId: string;
@@ -74,18 +74,33 @@ export function useAIChat({ moduleId }: UseAIChatOptions): UseAIChatReturn {
     };
 
     // Handle completion
-    const handleComplete = (data: { message: string; moduleId: string }) => {
+    const handleComplete = async (data: { message: string; moduleId: string }) => {
       if (data.moduleId === moduleId) {
         // Add complete assistant message to messages
         const assistantMessage: Message = {
           role: 'assistant',
           content: data.message,
         };
-        setMessages((prev) => [...prev, assistantMessage]);
+
+        let updatedMessages: Message[] = [];
+        setMessages((prev) => {
+          updatedMessages = [...prev, assistantMessage];
+          return updatedMessages;
+        });
 
         // Reset streaming state
         setStreamingMessage('');
         setIsStreaming(false);
+
+        // Generate and save follow-up questions after state is updated
+        try {
+          const result = await createFollowUpQuestions(updatedMessages, 3);
+          if (result?.questions) {
+            await addCurrentFollowUps(moduleId, result.questions);
+          }
+        } catch (err) {
+          console.error('Failed to generate/save follow-up questions:', err);
+        }
       }
     };
 
@@ -152,5 +167,27 @@ export function useCreateFollowUpQuestions(messages: Message[], numQuestions: nu
     queryFn: () => createFollowUpQuestions(messages, numQuestions),
     enabled: messages.length > 0,
     staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
+  });
+}
+
+/**
+ * Custom hook to get current follow-up questions for a module
+ * Retrieves the stored follow-up questions from the database
+ */
+export function useGetCurrentFollowUps(moduleId: string) {
+  return useQuery({
+    queryKey: ['currentFollowUps', moduleId],
+    queryFn: () => getCurrentFollowUps(moduleId),
+    enabled: !!moduleId,
+  });
+}
+
+/**
+ * Custom hook to add follow-up questions to a module
+ * Wraps the addCurrentFollowUps action in a mutation for state management
+ */
+export function useAddFollowUps(moduleId: string) {
+  return useMutation({
+    mutationFn: (followUps: unknown) => addCurrentFollowUps(moduleId, followUps),
   });
 }

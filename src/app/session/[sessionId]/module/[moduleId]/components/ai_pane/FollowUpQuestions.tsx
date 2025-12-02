@@ -34,7 +34,7 @@ export default function FollowUpQuestions({
                 key={`skeleton-${index}`}
                 className={cn(index === 0 && "border-t")}
               >
-                <TableCell className="py-3 pl-4 pr-4">
+                <TableCell className="py-3">
                   <Skeleton className="h-4 w-full" />
                 </TableCell>
               </TableRow>
@@ -49,7 +49,7 @@ export default function FollowUpQuestions({
                   index === 0 && "border-t"
                 )}
               >
-                <TableCell className="py-3 pl-4 pr-4 text-base">
+                <TableCell className="py-3 text-base pl-0">
                   {question}
                 </TableCell>
               </TableRow>
