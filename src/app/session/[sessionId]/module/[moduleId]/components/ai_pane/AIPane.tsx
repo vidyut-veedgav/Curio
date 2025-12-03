@@ -14,11 +14,12 @@ import { cn } from "@/lib/utils";
 
 interface AIPaneProps {
   moduleId: string;
+  userId: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-export function AIPane({ moduleId, open, onOpenChange }: AIPaneProps) {
+export function AIPane({ moduleId, userId, open, onOpenChange }: AIPaneProps) {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   // Fetch chat history
@@ -27,6 +28,7 @@ export function AIPane({ moduleId, open, onOpenChange }: AIPaneProps) {
   // WebSocket AI chat integration
   const { messages, streamingMessage, isStreaming, isGeneratingFollowUps, sendMessage, error } = useAIChat({
     moduleId,
+    userId,
   });
 
   // Combine database messages with WebSocket messages and streaming message for display

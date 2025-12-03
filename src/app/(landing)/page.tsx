@@ -38,18 +38,18 @@ export default function LandingPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-1 mt-16">
         <FeatureCard
           icon="/icons/OnlineLearning.png"
-          title="Custom Course Creation"
-          description="Generate comprehensive courses on any topic, perfectly adapted to match your current knowledge level and preferred learning approach — in seconds."
+          title="Course Generation"
+          description="Generate comprehensive, structured courses on any topic in seconds, automatically adapted to your knowledge level and time constraints."
         />
         <FeatureCard
           icon="/icons/AIAssistant.png"
           title="Interactive AI Tutor"
-          description="Get immediate, contextual answers to your questions as you learn, with an AI assistant that understands your course content and adapts to your pace."
+          description="Get immediate, expert answers to your questions as you learn, with contextual explanations that build on your current lesson."
         />
         <FeatureCard
           icon="/icons/Personalized.png"
           title="Deep Personalization"
-          description="Track your progress through each module with intelligent insights that help you understand what you've mastered and what to focus on next."
+          description="Teaching is tailored to each user’s unique interests, experiences, and background — making learning more relevant and engaging."
         />
       </div>
 

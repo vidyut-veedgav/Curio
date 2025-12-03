@@ -8,6 +8,7 @@ import { getModuleById, addCurrentFollowUps, getCurrentFollowUps, markModuleComp
 
 interface UseAIChatOptions {
   moduleId: string;
+  userId: string;
 }
 
 interface UseAIChatReturn {
@@ -24,7 +25,7 @@ interface UseAIChatReturn {
  * Custom hook for AI chat functionality within a module
  * Manages message state, streaming responses, and WebSocket communication
  */
-export function useAIChat({ moduleId }: UseAIChatOptions): UseAIChatReturn {
+export function useAIChat({ moduleId, userId }: UseAIChatOptions): UseAIChatReturn {
   const { emit, on, off, isConnected } = useSocket();
   const queryClient = useQueryClient();
   const [messages, setMessages] = useState<Message[]>([]);
@@ -64,9 +65,10 @@ export function useAIChat({ moduleId }: UseAIChatOptions): UseAIChatReturn {
       emit('ai:chat:generate', {
         moduleId,
         message: content.trim(),
+        userId,
       });
     },
-    [moduleId, isConnected, emit]
+    [moduleId, userId, isConnected, emit]
   );
 
   // Set up event listeners
