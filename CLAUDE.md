@@ -8,19 +8,23 @@ An AI-powered learning platform that enables users to create personalized learni
 
 ## Tech Stack
 
-- **Frontend**: React 19.0.0, TypeScript 5.9.3, Tailwind 4.1, Next.js 15.5.6 (App Router)
-- **Backend**: Next.js API Routes, Prisma 6.16 (ORM)
+- **Frontend**: React 19.0.0, TypeScript 5, Tailwind 3.4.18, shadcn/ui, Next.js 16.0.4 (App Router)
+- **Backend**: Next.js Server Actions, Prisma 6.19.0 (ORM), Socket.io 4.8.1 (WebSockets)
 - **Database**: PostgreSQL (hosted on Neon)
-- **Authentication**: Auth.js 4.24.7
-- **AI**: OpenAI 6.1.0 (using gpt-4o-mini model)
-- **Form Handling**: React Hook Form 7.65.0 with Zod validation
+- **Authentication**: NextAuth 5.0.0-beta.29
+- **AI**: OpenAI 6.1.0 (gpt-4o-mini via LLMProvider abstraction)
+- **State Management**: TanStack Query 5.90.8 (React Query)
+- **Form Handling**: React Hook Form 7.65.0 with Zod 4.1.12 validation
 - **Testing**: Vitest 4.0.1, @testing-library/react 16.3.0, jsdom 27.0.1
 
 ## Development Commands
 
 ```bash
-# Start development server with Turbopack
-npm run dev
+# Start development server with Socket.io + Next.js
+npm run dev              # Starts server.ts with WebSocket support
+
+# Start Next.js only (no WebSocket)
+npm run dev:next
 
 # Build for production
 npm run build
@@ -55,9 +59,21 @@ npx prisma studio
 
 # Push schema changes without creating migrations (development only)
 npx prisma db push
+
+# Clean database (delete all data)
+npm run clean
+
+# Seed database with test data
+npm run seed
 ```
 
 ## Architecture
+
+This full-stack application follows a three-layer architectural pattern:
+
+1. **Server Actions** (`src/lib/actions/`): Next.js server actions containing business logic
+2. **Custom Hooks**: React Query abstractions that wrap server actions
+3. **Components**: UI components that consume hooks for data and mutations
 
 ### Database Schema Hierarchy
 
@@ -68,145 +84,169 @@ User
    LearningSession (1:many)
        name, description, originalPrompt
        Module (1:many)
-           name, overview, order, isComplete
-           ChatMessage (1:many)
-               content, author (User|AI), order
+           name, overview, content, order, isComplete
+           messages: Json[]              # Stored as JSON array
+           currentFollowUps: Json[]      # AI-generated follow-up questions
 ```
 
 **Key Schema Details**:
 - All IDs use UUID (`@db.Uuid`)
 - PostgreSQL column names use snake_case (e.g., `user_id`, `learning_session_id`)
 - Prisma models use camelCase with `@map()` directives
-- ChatMessageAuthor enum distinguishes between User and AI messages
+- Chat messages stored as JSON array in Module table (not separate table)
+- NextAuth models: Account, Session, VerificationToken
 
-### Core Business Logic
+### Server Actions Layer
 
-**Session Creation Flow**:
-1. User submits a topic/description
-2. Backend invokes OpenAI API to generate structured modules
-3. Each module receives AI-generated objectives and lesson overview
-4. Session creation fails if AI doesn't generate at least one valid module
-5. Sessions are editable until the first module is completed
+The application is organized by feature with server actions in `src/lib/actions/`:
 
-**Module Completion**:
-- Users can mark modules complete even if chat is left halfway
-- Module completion updates overall session progress
-- All modules must be complete for session to be considered finished
-
-**Chat Message Handling**:
-- Messages persist chronologically by `order` field
-- AI responses use module objectives and chat history as context
-- Message count per module is limited to prevent excessive API usage (100 messages per module)
-- Input sanitization and content filtering applied before AI calls
-
-### Service Layer Structure
-
-The application is organized by feature with fully implemented services in `src/lib/services/`:
-
-#### Session Service (`sessionService.ts`)
-- `createSession({ userId, topic, description?, length?, complexity? })` - Creates session with AI-generated modules
-- `getSessions(userId)` - Retrieves all user sessions
-- `getSessionById(sessionId)` - Retrieves single session with modules
-- AI Integration: Uses `gpt-4o-mini` with `response_format: "json_object"` to generate 3-5 modules
-- Fallback: Returns basic module structure if OpenAI API fails
+#### Session Actions (`sessionActions.ts`)
+- `createLearningSession({ userId, topic, description?, length?, complexity? })` - Creates session with AI-generated modules
+- `getLearningSessions(userId)` - Retrieves all user sessions
+- `getLearningSessionById(sessionId)` - Retrieves single session with modules
+- AI Integration: Uses LLMProvider with `gpt-4o-mini` to generate 3-5 modules
 - Parameters:
   - `length`: short | medium | long (affects module count)
   - `complexity`: beginner | intermediate | advanced (affects content depth)
 
-#### Module Service (`moduleService.ts`)
-- `getModules(sessionId)` - Returns all modules with message counts
-- `getModuleById(moduleId)` - Returns module with learning session context
-- `markModuleComplete(moduleId)` - Marks complete and auto-detects session completion
-- `getModuleTitle(moduleId)` - Helper to fetch module name
-- Session completion: Automatically marks session complete when all modules are complete
+#### Module Actions (`moduleActions.ts`)
+- `getModules(sessionId)` - Returns all modules for a session
+- `getModuleById(moduleId)` - Returns module with session context
+- `toggleModuleCompletion(moduleId)` - Toggles module completion status
 
-#### Chat Service (`chatService.ts`)
-- `getMessages(moduleId)` - Retrieves all chat messages ordered chronologically
-- `sendMessage({ moduleId, content, author })` - Stores message and auto-generates AI responses
-- `generateAIResponse(moduleId)` - Internal function for AI chat responses
-- AI Configuration:
-  - Model: `gpt-4o-mini`
-  - Temperature: 0.7
-  - Max tokens: 500
-  - Context window: Last 20 messages
-  - System prompt includes module objectives for pedagogical alignment
-- Message limit: 100 messages per module (enforced)
-- Auto-response: AI automatically responds when author is `ChatMessageAuthor.User`
+#### Chat Actions (`chatActions.ts`)
+- `getMessagesForModule(moduleId)` - Retrieves chat messages from Module.messages JSON
+- `addMessageToModule({ moduleId, content, author })` - Appends message to JSON array
+- Real-time AI responses handled via WebSocket (see `src/lib/websocket/handlers.ts`)
 
-#### User Service (`userService.ts`)
-- `getUserData(userId)` - Fetches user profile
-- `setUserData(userId, data)` - Updates firstName, lastName, or bio (email is immutable)
-- `createUser({ email, firstName?, lastName?, bio? })` - Creates new user with duplicate email check
-- Validation: Prevents duplicate email addresses
+#### User Actions (`userActions.ts`)
+- `getUser(userId)` - Fetches user profile
+- `updateUserProfile(userId, data)` - Updates name, bio, or image
 
-#### Auth Service (Planned)
-- Authentication and authorization via Auth.js (not yet fully implemented)
+### AI Integration Layer
+
+**LLMProvider Abstraction** (`src/lib/ai/LLMProvider.ts`):
+- Abstract base class for LLM integrations
+- Methods: `complete()` for single responses, `stream()` for streaming
+- Currently implemented: `OpenAIProvider` (`src/lib/ai/providers/openai.ts`)
+
+**Prompts** (`src/lib/prompts/`):
+- Centralized prompt management via `getPrompt()` function
+- Prompts organized by feature (session generation, content generation, chat responses, follow-up questions)
+
+**WebSocket Handlers** (`src/lib/websocket/handlers.ts`):
+- `handleAIChatGeneration()`: Streams AI responses in real-time via Socket.io
+- Emits chunks as they arrive from OpenAI streaming API
+- Automatically stores complete message and generates follow-up questions
 
 ### Project Structure
 
 ```
 src/
-   app/                     # Next.js App Router
-       layout.tsx           # Root layout with Geist fonts
-       page.tsx             # Home page (currently Next.js template - UI not implemented)
-       globals.css          # Tailwind CSS imports
-       api/
-           sessions/
-               route.ts     # Session API endpoints (POST/GET)
+   app/                            # Next.js App Router
+       layout.tsx                  # Root layout
+       page.tsx                    # Landing page
+       providers.tsx               # React Query provider
+       MarkdownRenderer.tsx        # Markdown/LaTeX renderer for module content
+
+       api/auth/[...nextauth]/     # NextAuth endpoints
+
+       home/                       # Home page (session list)
+           page.tsx
+           hooks.ts                # useGetSessions, useCreateSession
+           components/
+               SessionCard.tsx
+               AddSessionButton.tsx
+
+       session/[sessionId]/        # Session detail page (module list)
+           page.tsx
+           hooks.ts
+           components/
+               ModuleCard.tsx
+               ModuleList.tsx
+               SessionDescription.tsx
+               SessionProgressBar.tsx
+
+           module/[moduleId]/      # Module page (chat + content)
+               page.tsx
+               hooks.ts
+               components/
+                   Content.tsx
+                   SessionHeader.tsx
+                   ai_pane/
+                       AIPane.tsx
+                       AIPaneHeader.tsx
+                       AIPaneInput.tsx
+                       ChatMessage.tsx
+                       FollowUpQuestions.tsx
+
+   components/
+       Header.tsx                  # Global header with auth dropdown
+       ui/                         # shadcn/ui components
 
    lib/
-       db.ts                # Prisma client singleton with connection pooling
-       openai.ts            # OpenAI client initialization with API key validation
-       services/
-           sessionService.ts  # Session creation and retrieval
-           moduleService.ts   # Module management and completion
-           chatService.ts     # Chat message handling and AI responses
-           userService.ts     # User profile management
-           __tests__/         # Unit tests for all services
+       db.ts                       # Prisma client singleton
+       auth.ts                     # NextAuth configuration
+       api.ts                      # API utilities for client-side calls
+       utils.ts                    # cn() for class merging
 
-prisma/
-   schema.prisma           # Database schema
+       actions/                    # Server actions
+           sessionActions.ts
+           moduleActions.ts
+           chatActions.ts
+           userActions.ts
+           __tests__/              # Action tests
 
-docs/
-   business_logic.md      # Comprehensive business rules and user flows
-   services.md            # Service layer API documentation
-   datamodel.md           # Database model overview
+       ai/
+           LLMProvider.ts          # Abstract LLM provider
+           providers/openai.ts     # OpenAI implementation
+           types.ts
 
-vitest.config.ts          # Vitest test configuration
-vitest.setup.ts           # Test setup with mocked environment variables
+       prompts/
+           index.ts                # Centralized prompt templates
+
+       websocket/
+           handlers.ts             # Socket.io event handlers
+
+   hooks/
+       useGetUser.ts               # Get current user from NextAuth
+       useSocket.ts                # Socket.io client hook
+
+server.ts                          # Custom server with Socket.io
+prisma/schema.prisma               # Database schema
+scripts/                           # Database utilities (clean, seed, test)
 ```
 
 **Path Aliases**: `@/*` maps to `./src/*` (configured in tsconfig.json)
 
-## API Routes
+### Hooks Pattern
 
-### POST /api/sessions
-Creates a new learning session with AI-generated modules.
+Each page defines custom React Query hooks in a co-located `hooks.ts` file:
+- Hooks wrap server actions with `useQuery` or `useMutation`
+- Handle loading states, error handling, cache invalidation, and navigation
+- Example: `src/app/home/hooks.ts` exports `useGetSessions()` and `useCreateSession()`
 
-**Request Body**:
-```typescript
-{
-  userId: string;
-  topic: string;
-  description?: string;
-  length?: 'short' | 'medium' | 'long';
-  complexity?: 'beginner' | 'intermediate' | 'advanced';
-}
-```
+## WebSocket Events
 
-**Returns**: Created session with modules
+The application uses Socket.io for real-time AI chat streaming:
 
-**Note**: Authentication check not yet implemented
+**Server** (`server.ts`):
+- Path: `/api/socket`
+- CORS configured for development
 
-### GET /api/sessions?userId=<userId>
-Retrieves all learning sessions for a user.
+**Client** (`src/hooks/useSocket.ts`):
+- Automatically connects to Socket.io server
+- Provides hook for emitting events and listening to responses
 
-**Query Parameters**:
-- `userId`: User ID (required)
-
-**Returns**: Array of learning sessions
-
-**Note**: Authentication check not yet implemented
+**Events**:
+- `ai:chat:generate` - Client sends message to generate AI response
+  - Payload: `{ moduleId: string, userMessage: string }`
+- `ai:chat:chunk` - Server streams response chunks
+  - Payload: `{ content: string }`
+- `ai:chat:complete` - Server sends final message with follow-ups
+  - Payload: `{ message: Message, followUpQuestions: string[] }`
+- `ai:chat:error` - Server sends error
+  - Payload: `{ error: string }`
 
 ## Testing Framework
 
@@ -218,16 +258,16 @@ Retrieves all learning sessions for a user.
 - **Setup File**: `vitest.setup.ts` - Mocks environment variables (DATABASE_URL, OPENAI_API_KEY)
 
 ### Test Organization
-All service tests are located in `src/lib/services/__tests__/`:
-- `chatService.test.ts` - 6 tests covering message retrieval, AI responses, limits, error handling
-- `sessionService.test.ts` - Tests for session creation, AI integration, fallbacks, retrieval
-- `moduleService.test.ts` - Tests for module management, completion, session completion detection
-- `userService.test.ts` - Tests for user profile CRUD operations, validation, duplicate prevention
-- `db.test.ts` - Example Prisma mocking patterns
+All server action tests are located in `src/lib/actions/__tests__/`:
+- `chatService.test.ts` - Chat message handling tests
+- `sessionService.test.ts` - Session creation and AI generation tests
+- `moduleService.test.ts` - Module management and completion tests
+- `userService.test.ts` - User profile CRUD tests
+- Database tests: `src/lib/__tests__/db.test.ts`
 
 ### Mocking Patterns
 - **Prisma**: Mocked via `vi.mock('@/lib/db')` with `vi.mocked(prisma.model.method)`
-- **OpenAI**: Mocked via `vi.mock('@/lib/openai')` with custom response structures
+- **OpenAI/LLMProvider**: Mock the provider classes in `src/lib/ai/`
 - **Environment Variables**: Set in `vitest.setup.ts` to avoid missing .env in CI/CD
 
 ### Running Tests
@@ -239,75 +279,82 @@ npm run test:coverage    # Run with coverage report
 
 ## AI Integration
 
-**Model Used**: gpt-4o-mini (fast and cost-effective for educational content)
+**Model**: gpt-4o-mini (fast and cost-effective for educational content)
 
-**Prompt Composition**:
-- Concatenate user input + context from previous messages + module objectives
-- System prompts enforce pedagogical structure and safety rules
-- Last 20 messages included as context window for chat responses
+**LLMProvider Abstraction**:
+- Abstract class in `src/lib/ai/LLMProvider.ts` defines interface
+- `OpenAIProvider` implementation in `src/lib/ai/providers/openai.ts`
+- Methods: `complete()` for single responses, `stream()` for real-time streaming
 
-**Response Filtering**:
-- Safety validation (no NSFW or personal info)
-- Pedagogical structure alignment with goals
-- Markdown syntax validation
-- Content moderation API applied to all AI outputs
+**Prompts**:
+- Centralized in `src/lib/prompts/index.ts` via `getPrompt()` function
+- Organized by feature: session generation, module content, chat responses, follow-up questions
+- Each prompt includes system instructions and user context
 
-**Error Handling**:
-- Prompt injection attempts are sanitized
-- LaTeX/Markdown rendering fallbacks
-- Link validation on module save
-- Fallback to basic module structure if AI generation fails
+**Streaming Flow**:
+1. User sends message via WebSocket (`ai:chat:generate`)
+2. Server handler calls `LLMProvider.stream()` with message history
+3. Server emits chunks as they arrive (`ai:chat:chunk`)
+4. Server stores complete message and generates follow-ups (`ai:chat:complete`)
 
-**Rate Limiting**:
-- 100 message limit per module to prevent excessive API usage
-- Session creation limited by user tier (documented in business_logic.md)
+**Module Content Rendering**:
+- Markdown rendered with `react-markdown`
+- LaTeX math support via `remark-math` and `rehype-katex`
+- Code syntax highlighting via `react-syntax-highlighter`
+- GFM (GitHub Flavored Markdown) support via `remark-gfm`
 
 ## Environment Variables
 
 Required in `.env`:
 ```
-DATABASE_URL="postgresql://..."  # Neon PostgreSQL connection string
-OPENAI_API_KEY="sk-..."          # OpenAI API key (required, validated on startup)
+DATABASE_URL="postgresql://..."           # Neon PostgreSQL connection string
+OPENAI_API_KEY="sk-..."                   # OpenAI API key
+AUTH_SECRET="..."                         # NextAuth secret (generate with `openssl rand -base64 32`)
+NEXTAUTH_URL="http://localhost:3000"      # Application URL
 ```
 
 **Note**: `vitest.setup.ts` mocks these for testing to avoid requiring .env in CI/CD environments.
 
-## Key Constraints
-
-- System must support 100+ concurrent users
-- UI load times < 2 seconds
-- DB queries within 500ms
-- RESTful API communication
-
 ## Important Notes
 
-- **Frontend Status**: UI is currently minimal (Next.js template placeholder). Component development is the next major milestone.
-- **Authentication**: Planned via Auth.js (Google OAuth and email/password) but not yet fully integrated into routes
-- **Database**: All operations go through Prisma ORM with connection pooling enabled in development
-- **Build Tool**: Next.js uses Turbopack for faster builds
-- **Router**: Uses Next.js 15 App Router (not Pages Router)
-- **TypeScript**: Strict mode is enabled
-- **Testing**: Comprehensive unit tests for all services; integration tests planned
+### Authentication
+- Uses NextAuth 5 (beta) with Google OAuth provider
+- Session handling via database sessions (not JWT)
+- Auth configuration in `src/lib/auth.ts`
+- Protected routes check session via `auth()` from NextAuth
 
-## Development Status
+### Database
+- All operations go through Prisma ORM
+- Connection pooling enabled
+- UUIDs for all primary keys
+- JSON columns for messages and follow-up questions (not separate tables)
 
-**Completed**:
-- Database schema and migrations
-- Core service layer (session, module, chat, user)
-- OpenAI integration with fallbacks
-- Unit test framework and coverage
-- API routes for session management
-- Connection pooling and performance optimization
+### Real-Time Features
+- Socket.io runs on custom server (`server.ts`)
+- WebSocket path: `/api/socket`
+- Streaming AI responses for better UX
+- Auto-generates follow-up questions after each AI response
 
-**In Progress**:
-- Frontend UI components
-- Authentication integration
-- End-to-end testing
+### Development Server
+- **IMPORTANT**: Use `npm run dev` (not `npm run dev:next`) to enable WebSocket support
+- `npm run dev` starts `server.ts` which runs Next.js + Socket.io
+- `npm run dev:next` starts only Next.js (WebSocket features won't work)
 
-**Planned**:
-- User dashboard
-- Module chat interface
-- Session management UI
-- Profile settings page
-- Integration tests
-- Deployment configuration
+### TypeScript
+- Strict mode enabled
+- Path alias `@/*` for `./src/*`
+- Server actions must have `'use server'` directive
+- Client components must have `'use client'` directive
+
+### UI Components
+- shadcn/ui components in `src/components/ui/`
+- Tailwind CSS 3.4.18 (not v4)
+- `cn()` utility in `src/lib/utils.ts` for class merging
+- Lucide React for icons
+
+### Data Flow Pattern
+1. User interacts with component
+2. Component calls custom hook (React Query)
+3. Hook calls server action
+4. Server action performs business logic with Prisma
+5. React Query handles caching, loading states, and revalidation
