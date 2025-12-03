@@ -10,31 +10,30 @@ import { cn } from "@/lib/utils";
 interface FollowUpQuestionsProps {
   questions?: string[];
   isLoading?: boolean;
+  onQuestionClick?: (question: string) => void;
 }
 
 export default function FollowUpQuestions({
-  questions = [
-    "How to implement container and presentational components in React",
-    "What are custom hooks and how do they improve code reuse",
-    "When should higher order components be used in React",
-    "How do render props enable reusable component logic",
-    "What are the best practices to handle errors using error boundaries"
-  ],
-  isLoading = false
+  questions = [],
+  isLoading = false,
+  onQuestionClick
 }: FollowUpQuestionsProps) {
+  // Show skeleton if loading OR if no questions yet
+  const showSkeleton = isLoading || questions.length === 0;
+
   return (
     <div className="w-full mt-14">
       <h3 className="text-lg font-semibold mb-2">Follow-up Questions</h3>
       <Table>
         <TableBody>
-          {isLoading ? (
+          {showSkeleton ? (
             // Loading skeleton state
             Array.from({ length: 3 }).map((_, index) => (
               <TableRow
                 key={`skeleton-${index}`}
                 className={cn(index === 0 && "border-t")}
               >
-                <TableCell className="py-3 pl-4 pr-4">
+                <TableCell className="py-3">
                   <Skeleton className="h-4 w-full" />
                 </TableCell>
               </TableRow>
@@ -48,8 +47,9 @@ export default function FollowUpQuestions({
                   "cursor-pointer hover:bg-muted/50 transition-colors",
                   index === 0 && "border-t"
                 )}
+                onClick={() => onQuestionClick?.(question)}
               >
-                <TableCell className="py-3 pl-4 pr-4 text-base">
+                <TableCell className="py-3 text-base pl-0">
                   {question}
                 </TableCell>
               </TableRow>

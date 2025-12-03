@@ -2,9 +2,11 @@
 
 import { ArrowLeft, Check } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useGetModule } from "../hooks";
+import { Spinner } from "@/components/ui/spinner";
+import { useGetModule, useMarkModuleComplete } from "../hooks";
 
 interface SessionHeaderProps {
   sessionId: string;
@@ -12,12 +14,31 @@ interface SessionHeaderProps {
 }
 
 export function SessionHeader({ sessionId, moduleId }: SessionHeaderProps) {
+  const router = useRouter();
+
   // Fetch module data
   const getModuleQuery = useGetModule(moduleId);
 
+  // Mark module complete mutation
+  const markModuleCompleteMutation = useMarkModuleComplete();
+
   // Extract module and session names from fetched data
   const sessionName = getModuleQuery.data?.learningSession?.name || "Loading...";
-  const moduleName = getModuleQuery.data?.name || "Loading...";
+  const moduleOrder = getModuleQuery.data?.order;
+  const moduleName = moduleOrder !== undefined
+    ? `${moduleOrder + 1}. ${getModuleQuery.data?.name || "Loading..."}`
+    : getModuleQuery.data?.name || "Loading...";
+
+  // Handle complete button click
+  const handleComplete = async () => {
+    try {
+      await markModuleCompleteMutation.mutateAsync(moduleId);
+      // Navigate back to session page
+      router.push(`/session/${sessionId}`);
+    } catch (error) {
+      console.error("Failed to mark module as complete:", error);
+    }
+  };
 
   return (
     <div className="bg-background flex justify-center border-b">
@@ -44,9 +65,18 @@ export function SessionHeader({ sessionId, moduleId }: SessionHeaderProps) {
                 Course
               </Button>
             </Link>
-            <Button size="default" className="rounded-lg">
-              <Check className="h-4 w-4" />
-              Complete
+            <Button
+              size="default"
+              className="rounded-lg"
+              onClick={handleComplete}
+              disabled={markModuleCompleteMutation.isPending}
+            >
+              {markModuleCompleteMutation.isPending ? (
+                <Spinner className="h-4 w-4" />
+              ) : (
+                <Check className="h-4 w-4" />
+              )}
+              {markModuleCompleteMutation.isPending ? "Completing..." : "Complete"}
             </Button>
           </div>
         </div>

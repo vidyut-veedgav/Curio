@@ -1,6 +1,8 @@
 import { Socket } from 'socket.io';
 import { OpenAIProvider } from '@/lib/ai/providers/openai';
 import { addMessage, getMessages, Message } from '@/lib/actions/chatActions';
+import { getModuleById } from '@/lib/actions/moduleActions';
+import { getPrompt } from '@/lib/prompts';
 
 export interface AIChatGenerationData {
   moduleId: string;
@@ -34,17 +36,49 @@ export async function handleAIChatGeneration(
     // Get conversation history
     const conversationHistory = await getMessages(moduleId);
 
+    // Get module context for AI prompt
+    const moduleContext = await getModuleById(moduleId);
+    if (!moduleContext) {
+      socket.emit('ai:chat:error', { error: 'Module not found' });
+      return;
+    }
+
+    // Format all modules list for prompt
+    const allModulesFormatted = moduleContext.learningSession.modules
+      .map((mod) => `${mod.order}. **${mod.name}**: ${mod.overview}`)
+      .join('\n');
+
+    // Load context-aware system prompt
+    const promptVariables = {
+      moduleName: moduleContext.name,
+      sessionName: moduleContext.learningSession.name,
+      sessionDescription: moduleContext.learningSession.description,
+      allModules: allModulesFormatted,
+      moduleOrder: String(moduleContext.order),
+      moduleOverview: moduleContext.overview,
+      moduleContent: moduleContext.content,
+    };
+
+    // Debug logging to verify context is loaded
+    console.log('[AI Context Debug]', {
+      moduleName: promptVariables.moduleName,
+      sessionName: promptVariables.sessionName,
+      moduleContentLength: promptVariables.moduleContent.length,
+      allModulesCount: moduleContext.learningSession.modules.length,
+    });
+
+    const { system: systemPromptContent } = getPrompt('tutorSystemPrompt.md', promptVariables);
+
+    // Debug: Log first 500 chars of system prompt to verify interpolation
+    console.log('[System Prompt Preview]', systemPromptContent.substring(0, 500));
+
     // Initialize OpenAI provider
     const provider = new OpenAIProvider('gpt-4o-mini');
 
-    // Add system message with formatting instructions
+    // Create system message with context-aware prompt
     const systemMessage = {
       role: 'system' as const,
-      content: `When generating mathematical equations, use proper markdown math syntax:
-- For inline math: $equation$
-- For display/block math: $$equation$$
-
-Example: $$\\text{Precision} = \\frac{\\text{True Positives}}{\\text{True Positives} + \\text{False Positives}}$$`,
+      content: systemPromptContent,
     };
 
     // Convert to OpenAI message format

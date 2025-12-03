@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
 import { Menu, X } from "lucide-react";
 import { useGetUser } from "@/hooks/useGetUser";
-import { useGetSessions } from "./hooks";
+import { useGetSessions, useCreateSession } from "./hooks";
 
 export default function HomePage() {
 
@@ -21,6 +21,7 @@ export default function HomePage() {
 
   const getUserQuery = useGetUser(userId);
   const getSessionsQuery = useGetSessions(userId);
+  const createSessionMutation = useCreateSession();
 
   const firstName = useMemo(() => {
     if (getUserQuery.data?.name) {
@@ -54,11 +55,23 @@ export default function HomePage() {
   }, [getSessionsQuery.data]);
 
   const [topic, setTopic] = useState("");
-  const [length, setLength] = useState("short");
-  const [complexity, setComplexity] = useState("beginner");
+  const [length, setLength] = useState<"short" | "medium" | "long">("short");
+  const [complexity, setComplexity] = useState<"beginner" | "intermediate" | "advanced">("beginner");
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const isLoading = sessionStatus === "loading" || getUserQuery.isLoading;
+  const isCreatingSession = createSessionMutation.isPending;
+
+  const handleCreateSession = () => {
+    if (!userId || !topic.trim()) return;
+
+    createSessionMutation.mutate({
+      userId,
+      topic: topic.trim(),
+      length,
+      complexity,
+    });
+  };
 
   if (isLoading) {
     return (
@@ -74,6 +87,16 @@ export default function HomePage() {
   return (
     <div className="h-screen bg-gradient-to-b from-background via-accent/5 to-accent/20 flex flex-col overflow-hidden">
       <Header />
+
+      {/* Loading Overlay for Session Creation */}
+      {isCreatingSession && (
+        <div className="fixed inset-0 bg-black/60 z-[100] flex items-center justify-center">
+          <div className="bg-background rounded-lg p-8 flex flex-col items-center gap-4 shadow-xl">
+            <Spinner className="size-12" />
+            <p className="text-lg font-medium">Hold tight while your learning session generates...</p>
+          </div>
+        </div>
+      )}
 
       <div className="flex flex-1 overflow-hidden relative">
         {/* Mobile Overlay */}
@@ -135,10 +158,16 @@ export default function HomePage() {
                 placeholder="Ask Curio to teach you anything..."
                 value={topic}
                 onChange={(e) => setTopic(e.target.value)}
+                disabled={isCreatingSession}
                 className="w-full max-w-2xl h-32 !text-lg resize-none rounded-2xl px-4 py-4 shadow-lg focus-visible:ring-0 focus-visible:ring-offset-0"
               />
 
-              <RadioGroup value={length} onValueChange={setLength} className="flex gap-8">
+              <RadioGroup
+                value={length}
+                onValueChange={(value) => setLength(value as "short" | "medium" | "long")}
+                disabled={isCreatingSession}
+                className="flex gap-8"
+              >
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="short" id="short" />
                   <Label htmlFor="short" className="text-base cursor-pointer">Short</Label>
@@ -153,7 +182,12 @@ export default function HomePage() {
                 </div>
               </RadioGroup>
 
-              <RadioGroup value={complexity} onValueChange={setComplexity} className="flex gap-8">
+              <RadioGroup
+                value={complexity}
+                onValueChange={(value) => setComplexity(value as "beginner" | "intermediate" | "advanced")}
+                disabled={isCreatingSession}
+                className="flex gap-8"
+              >
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="beginner" id="beginner" />
                   <Label htmlFor="beginner" className="text-base cursor-pointer">Beginner</Label>
@@ -168,7 +202,12 @@ export default function HomePage() {
                 </div>
               </RadioGroup>
 
-              <Button size="lg" className="w-full max-w-2xl h-14 text-base font-semibold">
+              <Button
+                size="lg"
+                className="w-full max-w-2xl h-14 text-base font-semibold"
+                onClick={handleCreateSession}
+                disabled={isCreatingSession || !topic.trim()}
+              >
                 Create Learning Session
               </Button>
             </div>

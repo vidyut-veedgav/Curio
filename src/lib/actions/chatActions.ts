@@ -3,6 +3,7 @@
 import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/db';
 import { OpenAIProvider } from '@/lib/ai/providers/openai';
+import { getPrompt } from '@/lib/prompts';
 
 /**
  * Message structure stored in JSONB
@@ -75,25 +76,11 @@ export async function createFollowUpQuestions(
     const provider = new OpenAIProvider('gpt-4o-mini');
 
     // Prepare the prompt for generating follow-up questions
+    const prompt = getPrompt('followUpQuestions.md', { numQuestions });
+
     const systemPrompt: Message = {
       role: 'assistant',
-      content: `You are an AI tutor helping students learn. Based on the conversation history, generate exactly ${numQuestions} thought-provoking follow-up questions that:
-1. Deepen understanding of the current topic
-2. Explore related concepts and connections
-3. Encourage practical application
-4. Build on what has been discussed
-5. Are clear, concise, and pedagogically valuable
-
-Return ONLY a valid JSON object in this exact format:
-{
-  "questions": [
-    "Question 1",
-    "Question 2",
-    ...
-  ]
-}
-
-Generate exactly ${numQuestions} questions. Do not include any additional text or explanation outside the JSON object.`
+      content: prompt.system,
     };
 
     // Combine system prompt with conversation context

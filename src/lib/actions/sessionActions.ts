@@ -2,6 +2,7 @@
 
 import { prisma } from '@/lib/db';
 import { OpenAIProvider } from '@/lib/ai/providers/openai';
+import { getPrompt } from '@/lib/prompts';
 
 const openai = new OpenAIProvider('gpt-4o-mini');
 
@@ -24,15 +25,16 @@ export interface ModuleGeneration {
  * Creates a new learning session with AI-generated modules
  *
  * Flow:
- * 1. Call OpenAI to generate module structure based on topic
+ * 1. Call OpenAI to generate session description and module structure based on topic
  * 2. Validate that at least one module was generated
- * 3. Create session and modules in database transaction
+ * 3. Iteratively generate content for each module
+ * 4. Create session and modules in database transaction
  *
  * @throws Error if AI fails to generate valid modules
  * @throws Error if user not found
  */
 export async function createLearningSession(input: CreateSessionInput) {
-  const { userId, topic, description, length = 'medium', complexity = 'intermediate' } = input;
+  const { userId, topic, length = 'medium', complexity = 'intermediate' } = input;
 
   // Verify user exists
   const user = await prisma.user.findUnique({
@@ -43,8 +45,8 @@ export async function createLearningSession(input: CreateSessionInput) {
     throw new Error('User not found');
   }
 
-  // Generate modules using OpenAI
-  const modules = await generateModules(topic, length, complexity);
+  // Generate session title, description, and modules using OpenAI
+  const { sessionTitle, sessionDescription, modules } = await generateModules(topic, length, complexity);
 
   if (!modules || modules.length === 0) {
     throw new Error('Failed to generate learning modules. Please try again with a different topic.');
@@ -54,8 +56,8 @@ export async function createLearningSession(input: CreateSessionInput) {
   const session = await prisma.learningSession.create({
     data: {
       userId,
-      name: topic,
-      description: description || `AI-generated learning path for ${topic}`,
+      name: sessionTitle,
+      description: sessionDescription,
       originalPrompt: topic,
       modules: {
         create: modules,
@@ -119,29 +121,21 @@ async function generateModuleContent(
   complexity: string
 ): Promise<string> {
   try {
+    const prompt = getPrompt('moduleContentGenerator.md', {
+      complexity,
+      moduleName,
+      topic,
+    });
+
     const responseContent = await openai.complete(
       [
         {
           role: 'system',
-          content: `You are an expert curriculum content writer. Create detailed module overviews that guide learners effectively.
-
-Your response should be 2-3 paragraphs that include:
-- A brief introduction to the module's focus
-- 3-5 specific learning objectives
-- Key concepts and skills that will be covered
-- How this fits into the broader learning path
-
-Write at a ${complexity} level. Return only the overview text, no JSON or formatting.`,
+          content: prompt.system,
         },
         {
           role: 'user',
-          content: `Write a detailed overview for this module:
-
-Module: ${moduleName}
-Topic: ${topic}
-Level: ${complexity}
-
-Create engaging, clear content that helps learners understand what they'll gain from this module.`,
+          content: prompt.user!,
         },
       ],
       {
@@ -162,46 +156,36 @@ Create engaging, clear content that helps learners understand what they'll gain 
 }
 
 /**
- * Internal: Generate learning modules using OpenAI
+ * Internal: Generate learning session title, description, and modules using OpenAI
  *
- * First generates the module structure (names and order), then
- * iteratively populates each module with detailed content.
+ * First generates the session title, description, and module structure (names and order),
+ * then iteratively populates each module with detailed content.
  */
 async function generateModules(
   topic: string,
   length: string,
   complexity: string
-): Promise<ModuleGeneration[]> {
+): Promise<{ sessionTitle: string; sessionDescription: string; modules: ModuleGeneration[] }> {
   const moduleCount = length === 'short' ? 3 : length === 'medium' ? 5 : 7;
 
   try {
-    // Step 1: Generate module structure (names only)
+    // Step 1: Generate session title, description, and module structure in a single call
+    const prompt = getPrompt('sessionStructureGenerator.md', {
+      complexity,
+      length,
+      topic,
+      moduleCount,
+    });
+
     const responseContent = await openai.complete(
       [
         {
           role: 'system',
-          content: `You are an expert curriculum designer. Create a structured learning path with clear module titles.
-
-Return a JSON array of module names with this exact structure:
-[
-  {
-    "name": "Module Title",
-    "order": 0
-  }
-]
-
-Each module name should:
-- Be clear and descriptive
-- Focus on a specific aspect of the topic
-- Build progressively in complexity
-- Be appropriate for ${complexity} level learners`,
+          content: prompt.system,
         },
         {
           role: 'user',
-          content: `Create a ${length} learning curriculum for: ${topic}
-
-Generate ${moduleCount} module titles that progressively build knowledge.
-Ensure each module has a clear focus and flows logically to the next.`,
+          content: prompt.user!,
         },
       ],
       {
@@ -214,11 +198,14 @@ Ensure each module has a clear focus and flows logically to the next.`,
     }
 
     const parsed = JSON.parse(responseContent);
-    const moduleStructure = parsed.modules || parsed;
 
-    if (!Array.isArray(moduleStructure)) {
-      throw new Error('Invalid module structure from OpenAI');
+    if (!parsed.sessionTitle || !parsed.sessionDescription || !Array.isArray(parsed.modules)) {
+      throw new Error('Invalid response structure from OpenAI');
     }
+
+    const sessionTitle = parsed.sessionTitle;
+    const sessionDescription = parsed.sessionDescription;
+    const moduleStructure = parsed.modules;
 
     // Step 2: Generate content for each module iteratively
     const modules: ModuleGeneration[] = [];
@@ -235,11 +222,14 @@ Ensure each module has a clear focus and flows logically to the next.`,
       });
     }
 
-    return modules;
+    return { sessionTitle, sessionDescription, modules };
   } catch (error) {
     console.error('Error generating modules with AI:', error);
 
-    // Fallback: return basic module structure with content
+    // Fallback: return basic session title, description, and module structure
+    const sessionTitle = `Learn ${topic}`;
+    const sessionDescription = `Explore the fundamentals of ${topic} through a structured learning path designed for ${complexity}-level learners. This ${length} curriculum will guide you through key concepts and practical applications, building your knowledge progressively.`;
+
     const fallbackModules: ModuleGeneration[] = [];
 
     for (let i = 0; i < moduleCount; i++) {
@@ -254,6 +244,6 @@ Ensure each module has a clear focus and flows logically to the next.`,
       });
     }
 
-    return fallbackModules;
+    return { sessionTitle, sessionDescription, modules: fallbackModules };
   }
 }

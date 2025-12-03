@@ -1,10 +1,10 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useSocket } from '@/hooks/useSocket';
 import { Message, getMessages, createFollowUpQuestions } from '@/lib/actions/chatActions';
-import { getModuleById } from '@/lib/actions/moduleActions';
+import { getModuleById, addCurrentFollowUps, getCurrentFollowUps, markModuleComplete, getModules } from '@/lib/actions/moduleActions';
 
 interface UseAIChatOptions {
   moduleId: string;
@@ -14,6 +14,7 @@ interface UseAIChatReturn {
   messages: Message[];
   streamingMessage: string;
   isStreaming: boolean;
+  isGeneratingFollowUps: boolean;
   sendMessage: (content: string) => void;
   error: string | null;
 }
@@ -25,9 +26,11 @@ interface UseAIChatReturn {
  */
 export function useAIChat({ moduleId }: UseAIChatOptions): UseAIChatReturn {
   const { emit, on, off, isConnected } = useSocket();
+  const queryClient = useQueryClient();
   const [messages, setMessages] = useState<Message[]>([]);
   const [streamingMessage, setStreamingMessage] = useState('');
   const [isStreaming, setIsStreaming] = useState(false);
+  const [isGeneratingFollowUps, setIsGeneratingFollowUps] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   /**
@@ -74,18 +77,43 @@ export function useAIChat({ moduleId }: UseAIChatOptions): UseAIChatReturn {
     };
 
     // Handle completion
-    const handleComplete = (data: { message: string; moduleId: string }) => {
+    const handleComplete = async (data: { message: string; moduleId: string }) => {
       if (data.moduleId === moduleId) {
         // Add complete assistant message to messages
         const assistantMessage: Message = {
           role: 'assistant',
           content: data.message,
         };
-        setMessages((prev) => [...prev, assistantMessage]);
+
+        let updatedMessages: Message[] = [];
+        setMessages((prev) => {
+          updatedMessages = [...prev, assistantMessage];
+          return updatedMessages;
+        });
 
         // Reset streaming state
         setStreamingMessage('');
         setIsStreaming(false);
+
+        // Start generating follow-up questions
+        setIsGeneratingFollowUps(true);
+
+        // Clear old follow-up questions immediately to show skeleton
+        queryClient.resetQueries({ queryKey: ['currentFollowUps', moduleId] });
+
+        // Generate and save follow-up questions after state is updated
+        try {
+          const result = await createFollowUpQuestions(updatedMessages, 3);
+          if (result?.questions) {
+            await addCurrentFollowUps(moduleId, result.questions);
+            // Invalidate to refetch and show new follow-ups
+            queryClient.invalidateQueries({ queryKey: ['currentFollowUps', moduleId] });
+          }
+        } catch (err) {
+          console.error('Failed to generate/save follow-up questions:', err);
+        } finally {
+          setIsGeneratingFollowUps(false);
+        }
       }
     };
 
@@ -107,12 +135,13 @@ export function useAIChat({ moduleId }: UseAIChatOptions): UseAIChatReturn {
       off('ai:chat:complete', handleComplete);
       off('ai:chat:error', handleError);
     };
-  }, [moduleId, on, off]);
+  }, [moduleId, on, off, queryClient]);
 
   return {
     messages,
     streamingMessage,
     isStreaming,
+    isGeneratingFollowUps,
     sendMessage,
     error,
   };
@@ -143,14 +172,48 @@ export function useGetModule(moduleId: string) {
 }
 
 /**
- * Custom hook to generate follow-up questions based on conversation history
- * Uses AI to create contextually relevant questions from the message history
+ * Custom hook to get current follow-up questions for a module
+ * Retrieves the stored follow-up questions from the database
  */
-export function useCreateFollowUpQuestions(messages: Message[], numQuestions: number = 3) {
+export function useGetCurrentFollowUps(moduleId: string) {
   return useQuery({
-    queryKey: ['followUpQuestions', messages.length, numQuestions],
-    queryFn: () => createFollowUpQuestions(messages, numQuestions),
-    enabled: messages.length > 0,
-    staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
+    queryKey: ['currentFollowUps', moduleId],
+    queryFn: () => getCurrentFollowUps(moduleId),
+    enabled: !!moduleId,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+  });
+}
+
+/**
+ * Custom hook to add follow-up questions to a module
+ * Wraps the addCurrentFollowUps action in a mutation for state management
+ */
+export function useAddFollowUps(moduleId: string) {
+  return useMutation({
+    mutationFn: (followUps: unknown) => addCurrentFollowUps(moduleId, followUps),
+  });
+}
+
+/**
+ * Custom hook to mark a module as complete
+ * Invalidates relevant queries to refresh UI state
+ */
+export function useMarkModuleComplete() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (moduleId: string) => markModuleComplete(moduleId),
+    onSuccess: (data, moduleId) => {
+      // Invalidate module queries to refresh completion status
+      queryClient.invalidateQueries({ queryKey: ['module', moduleId] });
+
+      // Invalidate modules query to refresh the list
+      if (data.module.learningSessionId) {
+        queryClient.invalidateQueries({ queryKey: ['modules', data.module.learningSessionId] });
+        // Invalidate session query to refresh module completion status on session page
+        queryClient.invalidateQueries({ queryKey: ['session', data.module.learningSessionId] });
+      }
+    },
   });
 }
