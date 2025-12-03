@@ -10,6 +10,7 @@ Return a JSON object with this exact structure:
   "modules": [
     {
       "name": "Module Title",
+      "overview": "A single sentence describing what this module covers",
       "order": 0
     }
   ]
@@ -32,6 +33,11 @@ Each module name should:
 - Build progressively in complexity
 - Be appropriate for {{complexity}} level learners
 
+Each module overview should:
+- Be a single, concise sentence
+- Briefly describe what the module covers
+- Be clear and informative
+
 ---
 
 # Session Structure Generator User Prompt
@@ -41,6 +47,8 @@ Create a {{length}} learning curriculum for: {{topic}}
 Generate:
 1. A concise, engaging session title
 2. A compelling session description (2-3 sentences)
-3. {{moduleCount}} module titles that progressively build knowledge
+3. {{moduleCount}} modules with:
+   - A clear, descriptive title
+   - A single sentence overview describing what the module covers
 
 Ensure each module has a clear focus and flows logically to the next.

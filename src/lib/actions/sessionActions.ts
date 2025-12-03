@@ -213,11 +213,12 @@ async function generateModules(
 
     for (let i = 0; i < moduleStructure.length; i++) {
       const moduleName = moduleStructure[i].name;
+      const moduleOverview = moduleStructure[i].overview || `Learn about ${moduleName.toLowerCase()}`;
       const content = await generateModuleContent(moduleName, topic, complexity);
 
       modules.push({
         name: moduleName,
-        overview: content,
+        overview: moduleOverview,
         content: content,
         order: i,
       });

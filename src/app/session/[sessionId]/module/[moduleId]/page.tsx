@@ -5,6 +5,7 @@ import { SessionHeader } from "./components/SessionHeader";
 import { AIPane } from "./components/ai_pane/AIPane";
 import { Content } from "./components/Content";
 import { use, useState } from "react";
+import { useSession } from "next-auth/react";
 
 interface ModulePageProps {
   params: Promise<{
@@ -15,6 +16,8 @@ interface ModulePageProps {
 
 export default function ModulePage({ params }: ModulePageProps) {
   const { sessionId, moduleId } = use(params);
+  const { data: session } = useSession();
+  const userId = session?.user?.id || "";
   const [isPaneOpen, setIsPaneOpen] = useState(false);
 
   return (
@@ -32,7 +35,7 @@ export default function ModulePage({ params }: ModulePageProps) {
         </div>
 
         {/* Right: AI Chat Pane */}
-        <AIPane moduleId={moduleId} open={isPaneOpen} onOpenChange={setIsPaneOpen} />
+        <AIPane moduleId={moduleId} userId={userId} open={isPaneOpen} onOpenChange={setIsPaneOpen} />
       </div>
     </div>
   );

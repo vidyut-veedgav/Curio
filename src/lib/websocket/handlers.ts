@@ -2,11 +2,13 @@ import { Socket } from 'socket.io';
 import { OpenAIProvider } from '@/lib/ai/providers/openai';
 import { addMessage, getMessages, Message } from '@/lib/actions/chatActions';
 import { getModuleById } from '@/lib/actions/moduleActions';
+import { getUserData } from '@/lib/actions/userActions';
 import { getPrompt } from '@/lib/prompts';
 
 export interface AIChatGenerationData {
   moduleId: string;
   message: string;
+  userId: string;
 }
 
 /**
@@ -17,12 +19,12 @@ export async function handleAIChatGeneration(
   socket: Socket,
   data: AIChatGenerationData
 ): Promise<void> {
-  const { moduleId, message } = data;
+  const { moduleId, message, userId } = data;
 
   try {
     // Validate input
-    if (!moduleId || !message?.trim()) {
-      socket.emit('ai:chat:error', { error: 'Invalid moduleId or message' });
+    if (!moduleId || !message?.trim() || !userId) {
+      socket.emit('ai:chat:error', { error: 'Invalid moduleId, message, or userId' });
       return;
     }
 
@@ -43,6 +45,11 @@ export async function handleAIChatGeneration(
       return;
     }
 
+    // Get user data for bio and name
+    const userData = await getUserData(userId);
+    const userName = userData.name || 'Student';
+    const userBio = userData.bio || 'No bio provided yet.';
+
     // Format all modules list for prompt
     const allModulesFormatted = moduleContext.learningSession.modules
       .map((mod) => `${mod.order}. **${mod.name}**: ${mod.overview}`)
@@ -57,6 +64,8 @@ export async function handleAIChatGeneration(
       moduleOrder: String(moduleContext.order),
       moduleOverview: moduleContext.overview,
       moduleContent: moduleContext.content,
+      userName: userName,
+      userBio: userBio,
     };
 
     // Debug logging to verify context is loaded
@@ -65,6 +74,8 @@ export async function handleAIChatGeneration(
       sessionName: promptVariables.sessionName,
       moduleContentLength: promptVariables.moduleContent.length,
       allModulesCount: moduleContext.learningSession.modules.length,
+      userName: promptVariables.userName,
+      userBio: promptVariables.userBio,
     });
 
     const { system: systemPromptContent } = getPrompt('tutorSystemPrompt.md', promptVariables);

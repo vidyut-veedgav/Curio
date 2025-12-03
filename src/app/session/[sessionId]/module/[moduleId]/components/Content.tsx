@@ -1,6 +1,7 @@
 'use client';
 
 import { useGetModule } from '../hooks';
+import MarkdownRenderer from '@/app/MarkdownRenderer';
 
 interface ContentProps {
   moduleId: string;
@@ -42,8 +43,8 @@ export function Content({ moduleId }: ContentProps) {
   return (
     <div className="flex justify-center">
       <div className="w-full max-w-4xl px-6 py-8">
-        <div className="text-muted-foreground whitespace-pre-wrap">
-          {getModuleQuery.data.content}
+        <div className="prose prose-base dark:prose-invert max-w-none">
+          <MarkdownRenderer>{getModuleQuery.data.content}</MarkdownRenderer>
         </div>
       </div>
     </div>
