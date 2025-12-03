@@ -24,7 +24,14 @@ export class OpenAIProvider extends LLMProvider {
 			}),
 		});
 
-		return response.choices[0]?.message?.content || "";
+		const content = response.choices[0]?.message?.content || "";
+
+		// If JSON format was requested, clean markdown wrapping as a fallback
+		if (options?.responseFormat === 'json_object') {
+			return this.cleanJsonResponse(content);
+		}
+
+		return content;
 	}
 
 	async *stream(

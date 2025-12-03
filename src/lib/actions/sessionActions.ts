@@ -190,6 +190,7 @@ async function generateModules(
       ],
       {
         temperature: 0.7,
+        responseFormat: 'json_object',
       }
     );
 
