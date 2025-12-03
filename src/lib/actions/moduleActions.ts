@@ -23,7 +23,8 @@ export async function getModules(sessionId: string) {
 }
 
 /**
- * Retrieves a single module by ID
+ * Retrieves a single module by ID with full context
+ * Includes session details and all sibling modules for AI prompt context
  */
 export async function getModuleById(moduleId: string) {
   return prisma.module.findUnique({
@@ -42,6 +43,16 @@ export async function getModuleById(moduleId: string) {
         select: {
           id: true,
           name: true,
+          description: true,
+          modules: {
+            select: {
+              id: true,
+              name: true,
+              overview: true,
+              order: true,
+            },
+            orderBy: { order: 'asc' },
+          },
         },
       },
     },

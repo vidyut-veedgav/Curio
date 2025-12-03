@@ -25,7 +25,7 @@ export function AIPane({ moduleId, open, onOpenChange }: AIPaneProps) {
   const getMessagesQuery = useGetMessages(moduleId);
 
   // WebSocket AI chat integration
-  const { messages, streamingMessage, isStreaming, sendMessage, error } = useAIChat({
+  const { messages, streamingMessage, isStreaming, isGeneratingFollowUps, sendMessage, error } = useAIChat({
     moduleId,
   });
 
@@ -144,7 +144,8 @@ export function AIPane({ moduleId, open, onOpenChange }: AIPaneProps) {
                   <div className="mt-6">
                     <FollowUpQuestions
                       questions={followUpQuestions}
-                      isLoading={followUpQuestionsQuery.isLoading}
+                      isLoading={followUpQuestionsQuery.isLoading || followUpQuestionsQuery.isFetching || isGeneratingFollowUps}
+                      onQuestionClick={sendMessage}
                     />
                   </div>
                 )}
