@@ -1,6 +1,6 @@
 'use server'
 
-import { prisma } from '@/lib/db';
+import { prisma } from '@/lib/prisma/db';
 
 /**
  * Retrieves all modules for a learning session

@@ -10,7 +10,7 @@ import {
   getLearningSessions,
   getLearningSessionById,
 } from '@/lib/actions/sessionActions';
-import { prisma } from '@/lib/db';
+import { prisma } from '@/lib/prisma/db';
 
 // Helper function to print formatted output
 function printResult(label: string, data: any) {

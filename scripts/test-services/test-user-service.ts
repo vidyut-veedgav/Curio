@@ -6,7 +6,7 @@
  */
 
 import { getUserData, setUserData, createUser } from '@/lib/actions/userActions';
-import { prisma } from '@/lib/db';
+import { prisma } from '@/lib/prisma/db';
 
 // Helper function to print formatted output
 function printResult(label: string, data: any) {

@@ -1,6 +1,6 @@
 'use server'
 
-import { prisma } from '@/lib/db';
+import { prisma } from '@/lib/prisma/db';
 import { OpenAIProvider } from '@/lib/ai/providers/openai';
 import { getPrompt } from '@/lib/prompts';
 
@@ -88,7 +88,7 @@ export async function getLearningSessions(userId: string) {
       },
     },
     orderBy: {
-      id: 'desc', // Most recent first
+      lastUpdated: 'desc', // Most recently updated first
     },
   });
 }

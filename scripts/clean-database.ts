@@ -8,7 +8,7 @@
  * Use this to reset your database to a clean state.
  */
 
-import { prisma } from '@/lib/db';
+import { prisma } from '@/lib/prisma/db';
 import * as readline from 'readline';
 
 // Create readline interface for user confirmation

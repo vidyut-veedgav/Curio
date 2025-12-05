@@ -32,6 +32,7 @@ model LearningSession {
   name           String
   description    String
   originalPrompt String?  @map("original_prompt")
+  lastUpdated    DateTime @default(now()) @map("last_updated")
   user           User     @relation(fields: [userId], references: [id])
   modules        Module[]
 
@@ -39,16 +40,16 @@ model LearningSession {
 }
 
 model Module {
-  id               String          @id @default(uuid()) @map("module_id") @db.Uuid
-  learningSessionId String         @map("learning_session_id") @db.Uuid
-  name             String
-  overview         String
-  content          String          @default("")
-  order            Int
-  isComplete       Boolean         @default(false) @map("is_complete")
-  messages         Json            @default("[]")
-  currentFollowUps Json            @default("[]")
-  learningSession  LearningSession @relation(fields: [learningSessionId], references: [id])
+  id                String          @id @default(uuid()) @map("module_id") @db.Uuid
+  learningSessionId String          @map("learning_session_id") @db.Uuid
+  name              String
+  overview          String
+  order             Int
+  isComplete        Boolean         @default(false) @map("is_complete")
+  messages          Json            @default("[]")
+  content           String          @default("")
+  currentFollowUps  Json            @default("[]")
+  learningSession   LearningSession @relation(fields: [learningSessionId], references: [id])
 
   @@map("module")
 }
@@ -64,15 +65,15 @@ model Session {
 }
 
 model User {
-  id              String            @id @default(uuid()) @map("user_id") @db.Uuid
-  email           String            @unique
-  emailVerified   DateTime?         @map("email_verified")
-  bio             String?
-  image           String?
-  name            String?
-  accounts        Account[]
+  id               String            @id @default(uuid()) @map("user_id") @db.Uuid
+  email            String            @unique
+  emailVerified    DateTime?         @map("email_verified")
+  bio              String?
+  image            String?
+  name             String?
+  accounts         Account[]
   learningSessions LearningSession[]
-  sessions        Session[]
+  sessions         Session[]
 
   @@map("user")
 }

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { createLearningSession, getLearningSessions, getLearningSessionById } from '../sessionActions';
-import { prisma } from '@/lib/db';
+import { prisma } from '@/lib/prisma/db';
 import { openai } from '@/lib/ai/providers/openai';
 
 // Mock Prisma client
