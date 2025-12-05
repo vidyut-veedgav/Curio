@@ -5,7 +5,7 @@
  * Run with: npm run seed
  */
 
-import { prisma } from '@/lib/db';
+import { prisma } from '@/lib/prisma/db';
 
 async function main() {
   console.log('Starting database seed...\n');

@@ -1,7 +1,7 @@
 'use server'
 
 import { Prisma } from '@prisma/client';
-import { prisma } from '@/lib/db';
+import { prisma } from '@/lib/prisma/db';
 import { OpenAIProvider } from '@/lib/ai/providers/openai';
 import { getPrompt } from '@/lib/prompts';
 
