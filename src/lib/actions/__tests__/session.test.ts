@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { createLearningSession, getLearningSessions, getLearningSessionById } from '../sessionActions';
 import { prisma } from '@/lib/prisma/db';
-import { openai } from '@/lib/ai/providers/openai';
 
 // Mock Prisma client
 vi.mock('@/lib/db', () => ({
@@ -17,16 +16,25 @@ vi.mock('@/lib/db', () => ({
   },
 }));
 
-// Mock OpenAI client
-vi.mock('@/lib/openai', () => ({
-  openai: {
-    chat: {
-      completions: {
-        create: vi.fn(),
-      },
-    },
-  },
+// Create mocks using vi.hoisted for proper hoisting
+const { mockComplete, mockStream } = vi.hoisted(() => ({
+  mockComplete: vi.fn(),
+  mockStream: vi.fn(),
 }));
+
+// Mock OpenAI provider
+vi.mock('@/lib/ai/providers/openai', () => {
+  return {
+    OpenAIProvider: class {
+      complete: any;
+      stream: any;
+      constructor(_model: string) {
+        this.complete = mockComplete;
+        this.stream = mockStream;
+      }
+    },
+  };
+});
 
 describe('sessionService', () => {
   beforeEach(() => {
@@ -37,10 +45,11 @@ describe('sessionService', () => {
     it('should create a learning session with AI-generated modules', async () => {
       const mockUser = {
         id: 'user-123',
-        firstName: 'John',
-        lastName: 'Doe',
+        name: 'John Doe',
         email: 'john@example.com',
+        emailVerified: null,
         bio: null,
+        image: null,
       };
 
       const mockSession = {
@@ -69,31 +78,23 @@ describe('sessionService', () => {
         ],
       };
 
-      const mockOpenAIResponse = {
-        choices: [
+      const mockAIResponse = JSON.stringify({
+        modules: [
           {
-            message: {
-              content: JSON.stringify({
-                modules: [
-                  {
-                    name: 'Module 1: Introduction to JavaScript',
-                    overview: 'Learn the basics of JavaScript programming',
-                    order: 0,
-                  },
-                  {
-                    name: 'Module 2: Variables and Data Types',
-                    overview: 'Understanding JavaScript variables and data types',
-                    order: 1,
-                  },
-                ],
-              }),
-            },
+            name: 'Module 1: Introduction to JavaScript',
+            overview: 'Learn the basics of JavaScript programming',
+            order: 0,
+          },
+          {
+            name: 'Module 2: Variables and Data Types',
+            overview: 'Understanding JavaScript variables and data types',
+            order: 1,
           },
         ],
-      };
+      });
 
       vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser);
-      vi.mocked(openai.chat.completions.create).mockResolvedValue(mockOpenAIResponse as any);
+      mockComplete.mockResolvedValue(mockAIResponse);
       vi.mocked(prisma.learningSession.create).mockResolvedValue(mockSession as any);
 
       const result = await createLearningSession({
@@ -107,12 +108,7 @@ describe('sessionService', () => {
       expect(prisma.user.findUnique).toHaveBeenCalledWith({
         where: { id: 'user-123' },
       });
-      expect(openai.chat.completions.create).toHaveBeenCalledWith(
-        expect.objectContaining({
-          model: 'gpt-4o-mini',
-          response_format: { type: 'json_object' },
-        })
-      );
+      expect(mockComplete).toHaveBeenCalled();
       expect(prisma.learningSession.create).toHaveBeenCalled();
     });
 
@@ -130,10 +126,11 @@ describe('sessionService', () => {
     it('should handle OpenAI API errors gracefully with fallback', async () => {
       const mockUser = {
         id: 'user-123',
-        firstName: 'John',
-        lastName: 'Doe',
+        name: 'John Doe',
         email: 'john@example.com',
+        emailVerified: null,
         bio: null,
+        image: null,
       };
 
       const mockSessionWithFallback = {
@@ -154,7 +151,7 @@ describe('sessionService', () => {
       };
 
       vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser);
-      vi.mocked(openai.chat.completions.create).mockRejectedValue(new Error('OpenAI API error'));
+      mockComplete.mockRejectedValue(new Error('OpenAI API error'));
       vi.mocked(prisma.learningSession.create).mockResolvedValue(mockSessionWithFallback as any);
 
       const result = await createLearningSession({

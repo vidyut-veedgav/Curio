@@ -28,7 +28,8 @@ describe('moduleService', () => {
           overview: 'Introduction to the topic',
           order: 0,
           isComplete: false,
-          chatMessages: [{ id: 'msg-1' }, { id: 'msg-2' }],
+          messages: [],
+          currentFollowUps: [],
         },
         {
           id: 'module-2',
@@ -37,7 +38,8 @@ describe('moduleService', () => {
           overview: 'Advanced concepts',
           order: 1,
           isComplete: false,
-          chatMessages: [],
+          messages: [],
+          currentFollowUps: [],
         },
       ];
 
@@ -49,12 +51,15 @@ describe('moduleService', () => {
       expect(prisma.module.findMany).toHaveBeenCalledWith({
         where: { learningSessionId: 'session-123' },
         orderBy: { order: 'asc' },
-        include: {
-          chatMessages: {
-            select: {
-              id: true,
-            },
-          },
+        select: {
+          id: true,
+          name: true,
+          overview: true,
+          order: true,
+          isComplete: true,
+          messages: true,
+          currentFollowUps: true,
+          learningSessionId: true,
         },
       });
     });
@@ -75,11 +80,16 @@ describe('moduleService', () => {
         learningSessionId: 'session-123',
         name: 'Module 1: Introduction',
         overview: 'Introduction to the topic',
+        content: 'Module content',
         order: 0,
         isComplete: false,
+        messages: [],
+        currentFollowUps: [],
         learningSession: {
           id: 'session-123',
           name: 'JavaScript Fundamentals',
+          description: 'Learn JavaScript',
+          modules: [],
         },
       };
 
@@ -90,11 +100,30 @@ describe('moduleService', () => {
       expect(result).toEqual(mockModule);
       expect(prisma.module.findUnique).toHaveBeenCalledWith({
         where: { id: 'module-123' },
-        include: {
+        select: {
+          id: true,
+          name: true,
+          overview: true,
+          content: true,
+          order: true,
+          isComplete: true,
+          messages: true,
+          currentFollowUps: true,
+          learningSessionId: true,
           learningSession: {
             select: {
               id: true,
               name: true,
+              description: true,
+              modules: {
+                select: {
+                  id: true,
+                  name: true,
+                  overview: true,
+                  order: true,
+                },
+                orderBy: { order: 'asc' },
+              },
             },
           },
         },
