@@ -2,11 +2,13 @@ interface SessionDescriptionProps {
   description: string;
   sessionName: string;
   inferredLength: 'short' | 'medium' | 'long';
+  lastUpdated: Date;
 }
 
 export function SessionDescription({
   description,
   inferredLength,
+  lastUpdated,
 }: SessionDescriptionProps) {
   return (
     <div>
@@ -20,7 +22,11 @@ export function SessionDescription({
         <div className="pt-4 border-t space-y-2">
           <div className="flex justify-between items-center">
             <span className="text-sm text-muted-foreground">Length</span>
-            <span className="font-medium capitalize">{inferredLength}</span>
+            <span className="text-sm capitalize">{inferredLength}</span>
+          </div>
+          <div className="flex justify-between items-center">
+            <span className="text-sm text-muted-foreground">Last Updated</span>
+            <span className="text-sm">{new Date(lastUpdated).toLocaleDateString()}</span>
           </div>
         </div>
       </div>

@@ -93,6 +93,7 @@ export default function SessionPage({ params }: SessionPageProps) {
               description={session.description}
               sessionName={session.name}
               inferredLength={inferredLength}
+              lastUpdated={session.lastUpdated}
             />
           </div>
 
