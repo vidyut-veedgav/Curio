@@ -216,21 +216,21 @@ async function generateModules(
     const sessionDescription = parsed.sessionDescription;
     const moduleStructure = parsed.modules;
 
-    // Step 2: Generate content for each module iteratively
-    const modules: ModuleGeneration[] = [];
+    // Step 2: Generate content for each module concurrently
+    const modules: ModuleGeneration[] = await Promise.all(
+      moduleStructure.map(async (module: { name: string; overview?: string }, i: number) => {
+        const moduleName = module.name;
+        const moduleOverview = module.overview || `Learn about ${moduleName.toLowerCase()}`;
+        const content = await generateModuleContent(moduleName, topic, complexity);
 
-    for (let i = 0; i < moduleStructure.length; i++) {
-      const moduleName = moduleStructure[i].name;
-      const moduleOverview = moduleStructure[i].overview || `Learn about ${moduleName.toLowerCase()}`;
-      const content = await generateModuleContent(moduleName, topic, complexity);
-
-      modules.push({
-        name: moduleName,
-        overview: moduleOverview,
-        content: content,
-        order: i,
-      });
-    }
+        return {
+          name: moduleName,
+          overview: moduleOverview,
+          content: content,
+          order: i,
+        };
+      })
+    );
 
     return { sessionTitle, sessionDescription, modules };
   } catch (error) {
