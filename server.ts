@@ -52,7 +52,7 @@ httpServer
     console.error(err);
     process.exit(1);
   })
-  .listen(port, () => {
+  .listen(port, '0.0.0.0', () => {
     console.log(`> Socket.IO server ready on port ${port}`);
     console.log(`> Socket.IO path: /api/socket`);
   });
