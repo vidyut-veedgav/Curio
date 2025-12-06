@@ -46,7 +46,7 @@ export function ModuleHeader({ sessionId, moduleId }: ModuleHeaderProps) {
   return (
     <div className="bg-background flex justify-center border-b">
       <div className="w-full max-w-4xl px-6">
-        <div className="pt-8 pb-8 flex items-center justify-between">
+        <div className="pt-8 pb-8 flex items-center justify-between gap-4">
           <div className="flex flex-col items-start gap-2">
             {getModuleQuery.isLoading ? (
               <>
@@ -61,7 +61,7 @@ export function ModuleHeader({ sessionId, moduleId }: ModuleHeaderProps) {
             )}
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex flex-col sm:flex-row items-end sm:items-center gap-3 shrink-0">
             <Link href={`/session/${sessionId}`}>
               <Button variant="outline" size="default" className="rounded-lg hover:bg-secondary hover:text-secondary-foreground">
                 <ArrowLeft className="h-4 w-4" />

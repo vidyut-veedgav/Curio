@@ -15,10 +15,10 @@ interface ModuleListProps {
 
 export function ModuleList({ sessionId, modules }: ModuleListProps) {
   return (
-    <div>
+    <div className="py-6">
       {/* <h2 className="text-xl font-semibold mb-4">Learning Modules</h2> */}
       <div>
-        <div>
+        <div className="space-y-4">
           {modules.map((module) => (
             <ModuleCard
               key={module.id}

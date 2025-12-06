@@ -6,7 +6,7 @@ import FeatureCard from "./components/FeatureCard";
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background via-accent/5 to-accent/20 flex flex-col items-center px-48 pt-8">
+    <div className="min-h-screen bg-gradient-to-b from-background via-accent/5 to-accent/20 flex flex-col items-center px-4 sm:px-8 md:px-16 lg:px-32 xl:px-48 pt-8 pb-16">
       {/* Logo */}
       <div className="w-24 h-auto relative">
         <Image
@@ -20,22 +20,22 @@ export default function LandingPage() {
       </div>
 
       {/* Headline */}
-      <div className="text-center mt-16">
-        <h1 className="text-7xl sm:text-8xl tracking-tight">
+      <div className="text-center mt-8 sm:mt-12 md:mt-16 px-4">
+        <h1 className="text-6xl sm:text-7xl tracking-tight">
           Learn anything.
         </h1>
-        <p className="text-xl text-muted-foreground mt-8">
+        <p className="text-lg text-muted-foreground mt-4 sm:mt-6 md:mt-8 max-w-2xl mx-auto">
           Create courses on anything tailored to your unique background and interests — powered by AI.
         </p>
       </div>
 
       {/* CTA Button */}
-      <div className="mt-8">
+      <div className="mt-6 sm:mt-8">
         <SignInButton />
       </div>
 
       {/* Features Section */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-1 mt-16">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 md:gap-1 mt-12 sm:mt-14 md:mt-16 w-full max-w-7xl">
         <FeatureCard
           icon="/icons/OnlineLearning.png"
           title="Course Generation"

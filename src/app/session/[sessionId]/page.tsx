@@ -76,9 +76,9 @@ export default function SessionPage({ params }: SessionPageProps) {
         />
 
         {/* Two Column Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-2">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
           {/* Left Side - Session Description */}
-          <div className="pr-24">
+          <div>
             <SessionDescription
               description={session.description}
               sessionName={session.name}
