@@ -1,7 +1,7 @@
 "use client";
 
 import { Header } from "@/components/Header";
-import { SessionHeader } from "./components/SessionHeader";
+import { ModuleHeader } from "./components/ModuleHeader";
 import { AIPane } from "./components/ai_pane/AIPane";
 import { Content } from "./components/Content";
 import { use, useState } from "react";
@@ -28,7 +28,7 @@ export default function ModulePage({ params }: ModulePageProps) {
       <div className="flex-1 flex overflow-hidden">
         {/* Left: Session Header + Module Content */}
         <div className="flex-1 flex flex-col overflow-hidden transition-all duration-300 ease-in-out">
-          <SessionHeader sessionId={sessionId} moduleId={moduleId} />
+          <ModuleHeader sessionId={sessionId} moduleId={moduleId} />
           <div className="flex-1 overflow-auto">
             <Content moduleId={moduleId} />
           </div>

@@ -49,7 +49,7 @@ model Module {
   messages          Json            @default("[]")
   content           String          @default("")
   currentFollowUps  Json            @default("[]")
-  learningSession   LearningSession @relation(fields: [learningSessionId], references: [id])
+  learningSession   LearningSession @relation(fields: [learningSessionId], references: [id], onDelete: Cascade)
 
   @@map("module")
 }

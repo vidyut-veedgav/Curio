@@ -116,6 +116,31 @@ export async function getLearningSessionById(sessionId: string, userId: string) 
 }
 
 /**
+ * Deletes a learning session and its associated modules
+ * Verifies that the user owns the session before deletion
+ */
+export async function deleteLearningSession(sessionId: string, userId: string) {
+  // Verify session exists and user owns it
+  const session = await prisma.learningSession.findUnique({
+    where: { id: sessionId },
+    select: { userId: true },
+  });
+
+  if (!session) {
+    throw new Error('Session not found');
+  }
+
+  if (session.userId !== userId) {
+    throw new Error('Unauthorized: You do not have access to this session');
+  }
+
+  // Delete session (modules will be cascade deleted due to foreign key relationship)
+  await prisma.learningSession.delete({
+    where: { id: sessionId },
+  });
+}
+
+/**
  * Helper: Generate content (overview) for a specific module
  *
  * @param moduleName - The name of the module

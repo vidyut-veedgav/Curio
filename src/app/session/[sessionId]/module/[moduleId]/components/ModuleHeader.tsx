@@ -9,12 +9,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Spinner } from "@/components/ui/spinner";
 import { useGetModule, useMarkModuleComplete } from "../hooks";
 
-interface SessionHeaderProps {
+interface ModuleHeaderProps {
   sessionId: string;
   moduleId: string;
 }
 
-export function SessionHeader({ sessionId, moduleId }: SessionHeaderProps) {
+export function ModuleHeader({ sessionId, moduleId }: ModuleHeaderProps) {
   const router = useRouter();
   const { data: session } = useSession();
   const userId = session?.user?.id || "";
