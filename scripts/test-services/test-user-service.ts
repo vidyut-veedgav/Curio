@@ -53,11 +53,10 @@ async function testUserService() {
     const updatedUser = await setUserData(userId, updateInput);
     printResult('Output - User Data Updated', updatedUser);
 
-    // Test 3: setUserData() - Update first and last name
+    // Test 3: setUserData() - Update name
     console.log('\nTEST 3: setUserData() - Update Name');
     const nameUpdateInput = {
-      firstName: 'Alexandra',
-      lastName: 'Johnson-Smith',
+      name: 'Alexandra Johnson-Smith',
     };
     console.log('Input:', { userId, data: nameUpdateInput });
     const updatedUserName = await setUserData(userId, nameUpdateInput);
@@ -67,8 +66,7 @@ async function testUserService() {
     console.log('\nTEST 4: createUser() - Create New User');
     const newUserData = {
       email: `testuser_${Date.now()}@example.com`,
-      firstName: 'Test',
-      lastName: 'User',
+      name: 'Test User',
       bio: 'This is a test user created by the test script',
     };
     console.log('Input:', newUserData);
@@ -79,8 +77,7 @@ async function testUserService() {
     console.log('\nTEST 5: createUser() - Duplicate Email (Expected to Fail)');
     const duplicateUserData = {
       email: sampleUser.email, // Use existing email
-      firstName: 'Duplicate',
-      lastName: 'User',
+      name: 'Duplicate User',
     };
     console.log('Input:', duplicateUserData);
     try {

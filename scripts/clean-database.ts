@@ -46,14 +46,12 @@ async function cleanDatabase() {
   try {
     // Get counts before deletion
     const counts = {
-      chatMessages: await prisma.chatMessage.count(),
       modules: await prisma.module.count(),
       sessions: await prisma.learningSession.count(),
       users: await prisma.user.count(),
     };
 
     console.log('Current database state:');
-    console.log(`   Chat Messages: ${counts.chatMessages}`);
     console.log(`   Modules: ${counts.modules}`);
     console.log(`   Learning Sessions: ${counts.sessions}`);
     console.log(`   Users: ${counts.users}\n`);
@@ -61,11 +59,7 @@ async function cleanDatabase() {
     console.log('Deleting records...\n');
 
     // Delete in order to respect foreign key constraints
-    // ChatMessage -> Module -> LearningSession -> User
-
-    console.log('   Deleting chat messages...');
-    const deletedMessages = await prisma.chatMessage.deleteMany();
-    console.log(`   Deleted ${deletedMessages.count} chat messages`);
+    // Module -> LearningSession -> User
 
     console.log('   Deleting modules...');
     const deletedModules = await prisma.module.deleteMany();
@@ -83,7 +77,6 @@ async function cleanDatabase() {
     console.log('Database cleaned successfully!');
     console.log('='.repeat(60));
     console.log('\nSummary:');
-    console.log(`   Total chat messages deleted: ${deletedMessages.count}`);
     console.log(`   Total modules deleted: ${deletedModules.count}`);
     console.log(`   Total sessions deleted: ${deletedSessions.count}`);
     console.log(`   Total users deleted: ${deletedUsers.count}`);

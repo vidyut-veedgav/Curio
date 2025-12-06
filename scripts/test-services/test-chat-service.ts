@@ -5,7 +5,7 @@
  * Run with: npm run test:chat
  */
 
-import { getMessages, sendMessage, Message } from '@/lib/actions/chatActions';
+import { getMessages, addMessage, Message } from '@/lib/actions/chatActions';
 import { prisma } from '@/lib/prisma/db';
 
 // Helper function to print formatted output
@@ -73,58 +73,40 @@ async function testChatService() {
       printConversation(existingMessages);
     }
 
-    // Test 2: sendMessage() - Send user message and get AI response
-    console.log('\nTEST 2: sendMessage() - Send User Message (Triggers AI Response)');
-    const userMessage1 = {
-      moduleId,
+    // Test 2: addMessage() - Send user message
+    console.log('\nTEST 2: addMessage() - Add User Message');
+    const userMessage1: Message = {
       content: 'Can you give me a quick summary of what I need to learn in this module?',
       role: 'user' as const,
     };
-    console.log('Input:', userMessage1);
-    console.log('Sending message and generating AI response...');
+    console.log('Input:', { moduleId, message: userMessage1 });
+    console.log('Adding message...');
 
     const startTime1 = Date.now();
-    const response1 = await sendMessage(userMessage1);
+    await addMessage(moduleId, userMessage1);
     const endTime1 = Date.now();
 
-    printResult(`Output - User Message + AI Response (${endTime1 - startTime1}ms)`, {
-      userMessage: {
-        role: response1.userMessage.role,
-        content: response1.userMessage.content,
-      },
-      aiMessage: response1.aiMessage
-        ? {
-            role: response1.aiMessage.role,
-            content: response1.aiMessage.content,
-          }
-        : null,
+    printResult(`Output - Message Added (${endTime1 - startTime1}ms)`, {
+      success: true,
+      message: userMessage1,
     });
 
-    // Test 3: sendMessage() - Send another user message
-    console.log('\nTEST 3: sendMessage() - Follow-up User Message');
-    const userMessage2 = {
-      moduleId,
+    // Test 3: addMessage() - Add another user message
+    console.log('\nTEST 3: addMessage() - Follow-up User Message');
+    const userMessage2: Message = {
       content: 'What would you recommend I focus on first?',
       role: 'user' as const,
     };
-    console.log('Input:', userMessage2);
-    console.log('Sending message and generating AI response...');
+    console.log('Input:', { moduleId, message: userMessage2 });
+    console.log('Adding message...');
 
     const startTime2 = Date.now();
-    const response2 = await sendMessage(userMessage2);
+    await addMessage(moduleId, userMessage2);
     const endTime2 = Date.now();
 
-    printResult(`Output - User Message + AI Response (${endTime2 - startTime2}ms)`, {
-      userMessage: {
-        role: response2.userMessage.role,
-        content: response2.userMessage.content,
-      },
-      aiMessage: response2.aiMessage
-        ? {
-            role: response2.aiMessage.role,
-            content: response2.aiMessage.content,
-          }
-        : null,
+    printResult(`Output - Message Added (${endTime2 - startTime2}ms)`, {
+      success: true,
+      message: userMessage2,
     });
 
     // Test 4: getMessages() - View updated conversation
@@ -138,23 +120,18 @@ async function testChatService() {
 
     printConversation(updatedMessages);
 
-    // Test 5: sendMessage() - Send assistant message directly (no auto-response)
-    console.log('\nTEST 5: sendMessage() - Send Assistant Message Directly (No Auto-Response)');
-    const assistantMessageDirect = {
-      moduleId,
+    // Test 5: addMessage() - Add assistant message directly
+    console.log('\nTEST 5: addMessage() - Add Assistant Message Directly');
+    const assistantMessageDirect: Message = {
       content: 'This is a manually added assistant message for testing purposes.',
       role: 'assistant' as const,
     };
-    console.log('Input:', assistantMessageDirect);
-    const response3 = await sendMessage(assistantMessageDirect);
+    console.log('Input:', { moduleId, message: assistantMessageDirect });
+    await addMessage(moduleId, assistantMessageDirect);
 
-    printResult('Output - Assistant Message Added (No Auto-Response)', {
-      userMessage: {
-        role: response3.userMessage.role,
-        content: response3.userMessage.content,
-      },
-      aiMessage: response3.aiMessage,
-      note: 'No AI auto-response because role was assistant, not user',
+    printResult('Output - Assistant Message Added', {
+      success: true,
+      message: assistantMessageDirect,
     });
 
     // Test 6: Message limit test (create a module with many messages)
@@ -210,8 +187,7 @@ async function testChatService() {
       console.log(`Current message count: ${currentMessages.length}`);
 
       try {
-        await sendMessage({
-          moduleId: limitTestModuleId,
+        await addMessage(limitTestModuleId, {
           content: 'This should fail',
           role: 'user',
         });
