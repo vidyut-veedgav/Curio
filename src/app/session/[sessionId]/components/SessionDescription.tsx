@@ -1,3 +1,5 @@
+import { formatDate } from '@/lib/utils';
+
 interface SessionDescriptionProps {
   description: string;
   sessionName: string;
@@ -26,7 +28,7 @@ export function SessionDescription({
           </div>
           <div className="flex justify-between items-center">
             <span className="text-sm text-muted-foreground">Last Updated</span>
-            <span className="text-sm">{new Date(lastUpdated).toLocaleDateString()}</span>
+            <span className="text-sm">{formatDate(lastUpdated)}</span>
           </div>
         </div>
       </div>

@@ -18,7 +18,7 @@ export function ModuleList({ sessionId, modules }: ModuleListProps) {
     <div>
       {/* <h2 className="text-xl font-semibold mb-4">Learning Modules</h2> */}
       <div>
-        <div className="space-y-10">
+        <div>
           {modules.map((module) => (
             <ModuleCard
               key={module.id}

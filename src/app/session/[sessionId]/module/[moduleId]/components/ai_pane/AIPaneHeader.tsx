@@ -14,7 +14,7 @@ export function AIPaneHeader({ onClose }: AIPaneHeaderProps) {
       <Button
         variant="ghost"
         size="icon"
-        className="h-8 w-8 rounded-sm opacity-70 hover:opacity-100"
+        className="h-8 w-8 rounded-sm hover:bg-secondary hover:text-secondary-foreground"
         onClick={onClose}
       >
         <X className="h-4 w-4" />

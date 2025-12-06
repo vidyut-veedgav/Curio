@@ -63,7 +63,7 @@ export function ModuleHeader({ sessionId, moduleId }: ModuleHeaderProps) {
 
           <div className="flex items-center gap-3">
             <Link href={`/session/${sessionId}`}>
-              <Button variant="outline" size="default" className="rounded-lg">
+              <Button variant="outline" size="default" className="rounded-lg hover:bg-secondary hover:text-secondary-foreground">
                 <ArrowLeft className="h-4 w-4" />
                 Course
               </Button>
