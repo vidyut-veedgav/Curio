@@ -41,53 +41,51 @@ export function AIPaneInput({ onSendMessage, isStreaming }: AIPaneInputProps) {
   };
 
   return (
-    <div className="flex justify-center pb-6">
-      <div className="w-full max-w-2xl px-6">
-        <InputGroup className="min-h-[60px]">
-          <InputGroupTextarea
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="Ask Curio a question..."
-            disabled={isStreaming}
-            className="min-h-0 !text-base pl-4 pt-4"
-          />
-          <InputGroupAddon align="block-end">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <InputGroupButton variant="ghost" className="h-8">
-                  {selectedProvider}
-                </InputGroupButton>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent
-                side="top"
-                align="start"
-                className="[--radius:0.5rem]"
-              >
-                {providerKeys.map((providerKey) => (
-                  <DropdownMenuItem
-                    key={providerKey}
-                    className="h-8"
-                    onClick={() => setSelectedProvider(providerKey)}
-                  >
-                    {providerKey}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-            <InputGroupButton
-              variant="default"
-              className="rounded-full ml-auto"
-              size="icon-xs"
-              onClick={handleSendMessage}
-              disabled={!inputValue.trim() || isStreaming}
+    <div className="pb-6 px-6">
+      <InputGroup className="min-h-[60px]">
+        <InputGroupTextarea
+          value={inputValue}
+          onChange={(e) => setInputValue(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder="Ask Curio a question..."
+          disabled={isStreaming}
+          className="min-h-0 !text-base pl-4 pt-4"
+        />
+        <InputGroupAddon align="block-end">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <InputGroupButton variant="ghost" className="h-8">
+                {selectedProvider}
+              </InputGroupButton>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+              side="top"
+              align="start"
+              className="[--radius:0.5rem]"
             >
-              <ArrowUp />
-              <span className="sr-only">Send</span>
-            </InputGroupButton>
-          </InputGroupAddon>
-        </InputGroup>
-      </div>
+              {providerKeys.map((providerKey) => (
+                <DropdownMenuItem
+                  key={providerKey}
+                  className="h-8"
+                  onClick={() => setSelectedProvider(providerKey)}
+                >
+                  {providerKey}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <InputGroupButton
+            variant="default"
+            className="rounded-full ml-auto"
+            size="icon-xs"
+            onClick={handleSendMessage}
+            disabled={!inputValue.trim() || isStreaming}
+          >
+            <ArrowUp />
+            <span className="sr-only">Send</span>
+          </InputGroupButton>
+        </InputGroupAddon>
+      </InputGroup>
     </div>
   );
 }

@@ -8,7 +8,7 @@ import { AIPaneInput } from "./AIPaneInput";
 import FollowUpQuestions from "./FollowUpQuestions";
 import { useRef, useEffect, useMemo } from "react";
 import { useAIChat, useGetMessages, useGetCurrentFollowUps } from "../../hooks";
-import { cn } from "@/lib/utils";
+import { Panel } from "react-resizable-panels";
 
 interface AIPaneProps {
   moduleId: string;
@@ -71,18 +71,18 @@ export function AIPane({ moduleId, userId, open, onOpenChange }: AIPaneProps) {
     }
   }, [messageCount]); // Only scroll when message count changes, not on every keystroke
 
+  if (!open) {
+    return null;
+  }
+
   return (
-    <div
-      className={cn(
-        "bg-background border-l flex flex-col overflow-hidden transition-all duration-500 ease-in-out",
-        open ? "w-full sm:w-[42rem]" : "w-0"
-      )}
-    >
+    <Panel defaultSize={40} minSize={20} maxSize={70} className="flex">
+      <div className="bg-background border-l flex flex-col overflow-hidden w-full">
         {/* Header */}
         <AIPaneHeader onClose={() => onOpenChange(false)} />
 
-      {/* Chat Messages Area */}
-      <ScrollArea className="flex-1" ref={scrollAreaRef}>
+        {/* Chat Messages Area */}
+        <ScrollArea className="flex-1" ref={scrollAreaRef}>
           <div className="flex justify-center py-6">
             <div className="w-[calc(100%-1rem)] max-w-2xl px-6">
               <div className="space-y-4">
@@ -131,8 +131,9 @@ export function AIPane({ moduleId, userId, open, onOpenChange }: AIPaneProps) {
           </div>
         </ScrollArea>
 
-      {/* Message Input Area */}
-      <AIPaneInput onSendMessage={sendMessage} isStreaming={isStreaming} />
-    </div>
+        {/* Message Input Area */}
+        <AIPaneInput onSendMessage={sendMessage} isStreaming={isStreaming} />
+      </div>
+    </Panel>
   );
 }
