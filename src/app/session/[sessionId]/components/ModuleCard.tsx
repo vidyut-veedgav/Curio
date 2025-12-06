@@ -19,7 +19,7 @@ export function ModuleCard({
 }: ModuleCardProps) {
   return (
     <Link href={`/session/${sessionId}/module/${moduleId}`}>
-      <div className="group relative border-t border-b border-l-0 border-r-0 py-6 px-4 hover:border-primary transition-colors cursor-pointer">
+      <div className="group relative border-t border-b border-l-0 border-r-0 py-6 px-4 hover:border-primary hover:bg-secondary transition-colors cursor-pointer">
         {/* Module Content */}
         <div className="flex items-start gap-4">
           {/* Module Number Badge */}

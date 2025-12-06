@@ -6,6 +6,7 @@ import { AIPane } from "./components/ai_pane/AIPane";
 import { Content } from "./components/Content";
 import { use, useState } from "react";
 import { useSession } from "next-auth/react";
+import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 
 interface ModulePageProps {
   params: Promise<{
@@ -24,19 +25,26 @@ export default function ModulePage({ params }: ModulePageProps) {
     <div className="h-screen bg-background flex flex-col overflow-hidden">
       <Header />
 
-      {/* Main Content Area - Flexbox layout */}
-      <div className="flex-1 flex overflow-hidden">
+      {/* Main Content Area - Resizable Panels */}
+      <PanelGroup direction="horizontal" className="flex-1">
         {/* Left: Session Header + Module Content */}
-        <div className="flex-1 flex flex-col overflow-hidden transition-all duration-300 ease-in-out">
-          <ModuleHeader sessionId={sessionId} moduleId={moduleId} />
-          <div className="flex-1 overflow-auto">
-            <Content moduleId={moduleId} />
+        <Panel defaultSize={60} minSize={30}>
+          <div className="h-full flex flex-col overflow-hidden">
+            <ModuleHeader sessionId={sessionId} moduleId={moduleId} isPaneOpen={isPaneOpen} onTogglePane={() => setIsPaneOpen(!isPaneOpen)} />
+            <div className="flex-1 overflow-auto">
+              <Content moduleId={moduleId} />
+            </div>
           </div>
-        </div>
+        </Panel>
 
-        {/* Right: AI Chat Pane */}
+        {/* Resize Handle - only visible when pane is open */}
+        {isPaneOpen && (
+          <PanelResizeHandle className="w-1 bg-border cursor-col-resize" />
+        )}
+
+        {/* Right: AI Chat Pane - handles its own Panel wrapper */}
         <AIPane moduleId={moduleId} userId={userId} open={isPaneOpen} onOpenChange={setIsPaneOpen} />
-      </div>
+      </PanelGroup>
     </div>
   );
 }

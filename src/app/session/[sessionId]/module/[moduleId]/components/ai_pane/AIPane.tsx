@@ -1,16 +1,14 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
-import Image from "next/image";
 import { ChatMessage } from "./ChatMessage";
 import { AIPaneHeader } from "./AIPaneHeader";
 import { AIPaneInput } from "./AIPaneInput";
 import FollowUpQuestions from "./FollowUpQuestions";
 import { useRef, useEffect, useMemo } from "react";
 import { useAIChat, useGetMessages, useGetCurrentFollowUps } from "../../hooks";
-import { cn } from "@/lib/utils";
+import { Panel } from "react-resizable-panels";
 
 interface AIPaneProps {
   moduleId: string;
@@ -73,41 +71,18 @@ export function AIPane({ moduleId, userId, open, onOpenChange }: AIPaneProps) {
     }
   }, [messageCount]); // Only scroll when message count changes, not on every keystroke
 
-  return (
-    <>
-      {/* Collapsed sidebar with AI button */}
-      {!open && (
-        <div className="w-12 bg-background border-l flex items-start justify-center pt-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => onOpenChange(true)}
-            className="h-8 w-8 group hover:bg-secondary"
-          >
-            <Image
-              src="/icons/ai.png"
-              alt="AI"
-              width={20}
-              height={20}
-              className="group-hover:brightness-0 transition-all"
-            />
-            <span className="sr-only">Open AI Tutor</span>
-          </Button>
-        </div>
-      )}
+  if (!open) {
+    return null;
+  }
 
-      {/* Expanded AI Pane */}
-      <div
-        className={cn(
-          "bg-background border-l flex flex-col overflow-hidden transition-all duration-500 ease-in-out",
-          open ? "w-full sm:w-[42rem]" : "w-0"
-        )}
-      >
+  return (
+    <Panel defaultSize={40} minSize={20} maxSize={70} className="flex">
+      <div className="bg-background border-l flex flex-col overflow-hidden w-full">
         {/* Header */}
         <AIPaneHeader onClose={() => onOpenChange(false)} />
 
-      {/* Chat Messages Area */}
-      <ScrollArea className="flex-1" ref={scrollAreaRef}>
+        {/* Chat Messages Area */}
+        <ScrollArea className="flex-1" ref={scrollAreaRef}>
           <div className="flex justify-center py-6">
             <div className="w-[calc(100%-1rem)] max-w-2xl px-6">
               <div className="space-y-4">
@@ -159,6 +134,6 @@ export function AIPane({ moduleId, userId, open, onOpenChange }: AIPaneProps) {
         {/* Message Input Area */}
         <AIPaneInput onSendMessage={sendMessage} isStreaming={isStreaming} />
       </div>
-    </>
+    </Panel>
   );
 }

@@ -90,9 +90,9 @@ export default function HomePage() {
       {/* Loading Overlay for Session Creation */}
       {isCreatingSession && (
         <div className="fixed inset-0 bg-black/60 z-[100] flex items-center justify-center">
-          <div className="bg-background rounded-lg p-8 flex flex-col items-center gap-4 shadow-xl">
+          <div className="bg-background rounded-lg p-6 sm:p-8 mx-4 flex flex-col items-center gap-4 shadow-xl max-w-md">
             <Spinner className="size-12" />
-            <p className="text-lg font-medium">Hold tight while your learning session generates...</p>
+            <p className="text-base sm:text-lg font-medium text-center">Hold tight while your learning session generates...</p>
           </div>
         </div>
       )}
@@ -107,7 +107,7 @@ export default function HomePage() {
         )}
 
         {/* Sidebar */}
-        <aside className={`${sidebarOpen ? "w-[480px]" : "w-0"} transition-all duration-300 overflow-hidden border-r bg-background fixed md:relative h-full z-50 md:z-auto`}>
+        <aside className={`${sidebarOpen ? "w-[85vw] sm:w-[400px] md:w-[480px]" : "w-0"} transition-all duration-300 overflow-hidden border-r bg-background fixed md:relative h-full z-50 md:z-auto`}>
           <div className="p-6 h-full overflow-y-auto">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-semibold">Learning Sessions</h2>
@@ -140,16 +140,16 @@ export default function HomePage() {
         <div className="flex-1 flex flex-col">
           {/* Toggle Button */}
           {!sidebarOpen && (
-            <div className="absolute top-6 left-6">
+            <div className="absolute top-4 left-4 sm:top-6 sm:left-6">
               <Button variant="outline" size="icon" onClick={() => setSidebarOpen(true)} className="h-8 w-8">
-                <Menu className="h-2 w-2" />
+                <Menu className="h-5 w-5" />
               </Button>
             </div>
           )}
 
-          <main className="flex-1 flex justify-center px-6 pt-24">
-            <div className="w-full max-w-3xl flex flex-col items-center space-y-10">
-              <h1 className="text-5xl font-semibold text-center text-primary max-w-2xl">
+          <main className="flex-1 flex justify-center px-4 sm:px-6 pt-16 sm:pt-24">
+            <div className="w-full max-w-3xl flex flex-col items-center space-y-6 sm:space-y-8 md:space-y-10">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold text-center text-primary max-w-2xl px-4">
                 {firstName ? `What do you want to learn today, ${firstName}?` : "What do you want to learn today?"}
               </h1>
 
@@ -165,7 +165,7 @@ export default function HomePage() {
                 value={length}
                 onValueChange={(value) => setLength(value as "short" | "medium" | "long")}
                 disabled={isCreatingSession}
-                className="flex gap-8"
+                className="flex flex-wrap justify-center gap-4 sm:gap-8"
               >
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="short" id="short" />
@@ -185,7 +185,7 @@ export default function HomePage() {
                 value={complexity}
                 onValueChange={(value) => setComplexity(value as "beginner" | "intermediate" | "advanced")}
                 disabled={isCreatingSession}
-                className="flex gap-8"
+                className="flex flex-wrap justify-center gap-4 sm:gap-8"
               >
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="beginner" id="beginner" />
