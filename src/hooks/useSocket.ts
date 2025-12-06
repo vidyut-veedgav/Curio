@@ -13,7 +13,10 @@ export function useSocket() {
 
   useEffect(() => {
     // Initialize socket connection
-    const socketInstance = io({
+    // Use Railway URL in production, same origin in development
+    const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL || '';
+
+    const socketInstance = io(socketUrl, {
       path: '/api/socket',
       autoConnect: true,
     });
