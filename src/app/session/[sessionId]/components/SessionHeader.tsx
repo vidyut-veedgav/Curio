@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { Button } from "@/components/ui/button";
 import { Trash2 } from "lucide-react";
+import { Spinner } from "@/components/ui/spinner";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -19,6 +20,7 @@ interface SessionHeaderProps {
   completedModules: number;
   totalModules: number;
   onDelete: () => void;
+  isDeleting?: boolean;
 }
 
 export function SessionHeader({
@@ -27,6 +29,7 @@ export function SessionHeader({
   completedModules,
   totalModules,
   onDelete,
+  isDeleting = false,
 }: SessionHeaderProps) {
   const progressPercentage = totalModules > 0 ? Math.round((completedModules / totalModules) * 100) : 0;
 
@@ -47,6 +50,7 @@ export function SessionHeader({
               variant="ghost"
               size="icon"
               className="text-muted-foreground hover:text-muted-foreground hover:bg-transparent hover:outline hover:outline-2 hover:outline-destructive transition-all"
+              disabled={isDeleting}
             >
               <Trash2 className="h-5 w-5" />
             </Button>
@@ -59,12 +63,20 @@ export function SessionHeader({
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel className="hover:bg-secondary hover:text-secondary-foreground">Cancel</AlertDialogCancel>
+              <AlertDialogCancel className="hover:bg-secondary hover:text-secondary-foreground" disabled={isDeleting}>Cancel</AlertDialogCancel>
               <AlertDialogAction
                 onClick={onDelete}
                 className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                disabled={isDeleting}
               >
-                Delete
+                {isDeleting ? (
+                  <>
+                    <Spinner className="mr-2" />
+                    Deleting...
+                  </>
+                ) : (
+                  'Delete'
+                )}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>

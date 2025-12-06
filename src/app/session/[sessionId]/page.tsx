@@ -72,6 +72,7 @@ export default function SessionPage({ params }: SessionPageProps) {
           completedModules={completedModules}
           totalModules={totalModules}
           onDelete={() => deleteSessionMutation.mutate(sessionId)}
+          isDeleting={deleteSessionMutation.isPending}
         />
 
         {/* Two Column Layout */}
