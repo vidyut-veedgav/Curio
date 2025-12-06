@@ -82,14 +82,14 @@ export function AIPane({ moduleId, userId, open, onOpenChange }: AIPaneProps) {
             variant="ghost"
             size="icon"
             onClick={() => onOpenChange(true)}
-            className="h-8 w-8 group"
+            className="h-8 w-8 group hover:bg-secondary"
           >
             <Image
               src="/icons/ai.png"
               alt="AI"
               width={20}
               height={20}
-              className="group-hover:brightness-0 group-hover:invert transition-all"
+              className="group-hover:brightness-0 transition-all"
             />
             <span className="sr-only">Open AI Tutor</span>
           </Button>

@@ -1,14 +1,14 @@
 "use client";
 
-import { useMemo, useEffect, useState } from 'react';
+import { use, useMemo } from 'react';
 import { notFound } from 'next/navigation';
-import Link from 'next/link';
-import { SessionProgressBar } from './components/SessionProgressBar';
+import { useSession } from 'next-auth/react';
+import { SessionHeader } from './components/SessionHeader';
 import { SessionDescription } from './components/SessionDescription';
 import { ModuleList } from './components/ModuleList';
 import { Header } from '@/components/Header';
 import { Spinner } from '@/components/ui/spinner';
-import { useGetSession } from './hooks';
+import { useGetSession, useDeleteSession } from './hooks';
 
 interface SessionPageProps {
   params: Promise<{
@@ -17,13 +17,11 @@ interface SessionPageProps {
 }
 
 export default function SessionPage({ params }: SessionPageProps) {
-  const [sessionId, setSessionId] = useState<string>('');
-
-  useEffect(() => {
-    params.then(p => setSessionId(p.sessionId));
-  }, [params]);
+  const { sessionId } = use(params);
+  const { status: sessionStatus } = useSession();
 
   const getSessionQuery = useGetSession(sessionId);
+  const deleteSessionMutation = useDeleteSession();
 
   const sessionData = useMemo(() => {
     if (!getSessionQuery.data) return null;
@@ -46,7 +44,8 @@ export default function SessionPage({ params }: SessionPageProps) {
     };
   }, [getSessionQuery.data]);
 
-  if (getSessionQuery.isLoading || !sessionId) {
+  // Show loading while auth session or query is loading
+  if (sessionStatus === 'loading' || getSessionQuery.isLoading) {
     return (
       <div className="min-h-screen bg-background flex flex-col">
         <Header />
@@ -67,28 +66,19 @@ export default function SessionPage({ params }: SessionPageProps) {
     <div className="min-h-screen bg-background">
       <Header />
       <div className="mx-auto max-w-7xl p-8">
-        {/* Back Button */}
-        <Link href="/home" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-6">
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-          </svg>
-          <span>Back</span>
-        </Link>
-
-        {/* Header with Title and Progress */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-4">{session.name}</h1>
-
-          <SessionProgressBar
-            completedModules={completedModules}
-            totalModules={totalModules}
-          />
-        </div>
+        <SessionHeader
+          sessionName={session.name}
+          sessionId={sessionId}
+          completedModules={completedModules}
+          totalModules={totalModules}
+          onDelete={() => deleteSessionMutation.mutate(sessionId)}
+          isDeleting={deleteSessionMutation.isPending}
+        />
 
         {/* Two Column Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-2">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
           {/* Left Side - Session Description */}
-          <div className="pr-24">
+          <div>
             <SessionDescription
               description={session.description}
               sessionName={session.name}

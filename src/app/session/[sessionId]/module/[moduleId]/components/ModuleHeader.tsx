@@ -9,12 +9,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Spinner } from "@/components/ui/spinner";
 import { useGetModule, useMarkModuleComplete } from "../hooks";
 
-interface SessionHeaderProps {
+interface ModuleHeaderProps {
   sessionId: string;
   moduleId: string;
 }
 
-export function SessionHeader({ sessionId, moduleId }: SessionHeaderProps) {
+export function ModuleHeader({ sessionId, moduleId }: ModuleHeaderProps) {
   const router = useRouter();
   const { data: session } = useSession();
   const userId = session?.user?.id || "";
@@ -46,7 +46,7 @@ export function SessionHeader({ sessionId, moduleId }: SessionHeaderProps) {
   return (
     <div className="bg-background flex justify-center border-b">
       <div className="w-full max-w-4xl px-6">
-        <div className="pt-8 pb-8 flex items-center justify-between">
+        <div className="pt-8 pb-8 flex items-center justify-between gap-4">
           <div className="flex flex-col items-start gap-2">
             {getModuleQuery.isLoading ? (
               <>
@@ -61,9 +61,9 @@ export function SessionHeader({ sessionId, moduleId }: SessionHeaderProps) {
             )}
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex flex-col sm:flex-row items-end sm:items-center gap-3 shrink-0">
             <Link href={`/session/${sessionId}`}>
-              <Button variant="outline" size="default" className="rounded-lg">
+              <Button variant="outline" size="default" className="rounded-lg hover:bg-secondary hover:text-secondary-foreground">
                 <ArrowLeft className="h-4 w-4" />
                 Course
               </Button>
