@@ -4,10 +4,11 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "npx tsx server.ts",
-    "dev:next": "next dev",
+    "dev": "next dev",
+    "dev:socket": "npx tsx server.ts",
     "build": "next build",
     "start": "next start",
+    "start:socket": "npx tsx server.ts",
     "lint": "eslint",
     "test": "vitest",
     "test:ui": "vitest --ui",
@@ -39,7 +40,7 @@
     "clsx": "^2.1.1",
     "katex": "^0.16.25",
     "lucide-react": "^0.553.0",
-    "next": "^16.0.4",
+    "next": "^16.0.7",
     "next-auth": "^5.0.0-beta.29",
     "openai": "^6.1.0",
     "react": "^19.0.0",
@@ -55,6 +56,7 @@
     "socket.io-client": "^4.8.1",
     "tailwind-merge": "^3.4.0",
     "tailwindcss-animate": "^1.0.7",
+    "tsx": "^4.20.6",
     "zod": "^4.1.12"
   },
   "devDependencies": {
