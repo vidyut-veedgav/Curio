@@ -4,8 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "npx tsx server.ts",
-    "dev:next": "next dev",
+    "dev": "next dev",
+    "dev:socket": "npx tsx server.ts",
     "build": "next build",
     "start": "next start",
     "start:socket": "npx tsx server.ts",
