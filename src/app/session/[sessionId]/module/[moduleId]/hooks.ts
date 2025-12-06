@@ -153,11 +153,11 @@ export function useAIChat({ moduleId, userId }: UseAIChatOptions): UseAIChatRetu
  * Custom hook to fetch and manage chat message history for a module
  * Retrieves all messages stored in the database for the given module
  */
-export function useGetMessages(moduleId: string) {
+export function useGetMessages(moduleId: string, userId: string) {
   return useQuery({
     queryKey: ['messages', moduleId],
-    queryFn: () => getMessages(moduleId),
-    enabled: !!moduleId,
+    queryFn: () => getMessages(moduleId, userId),
+    enabled: !!moduleId && !!userId,
   });
 }
 
@@ -165,11 +165,11 @@ export function useGetMessages(moduleId: string) {
  * Custom hook to fetch and manage module data
  * Retrieves module information including learning session context
  */
-export function useGetModule(moduleId: string) {
+export function useGetModule(moduleId: string, userId: string) {
   return useQuery({
     queryKey: ['module', moduleId],
-    queryFn: () => getModuleById(moduleId),
-    enabled: !!moduleId,
+    queryFn: () => getModuleById(moduleId, userId),
+    enabled: !!moduleId && !!userId,
   });
 }
 
@@ -201,11 +201,11 @@ export function useAddFollowUps(moduleId: string) {
  * Custom hook to mark a module as complete
  * Invalidates relevant queries to refresh UI state
  */
-export function useMarkModuleComplete() {
+export function useMarkModuleComplete(userId: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (moduleId: string) => markModuleComplete(moduleId),
+    mutationFn: (moduleId: string) => markModuleComplete(moduleId, userId),
     onSuccess: (data, moduleId) => {
       // Invalidate module queries to refresh completion status
       queryClient.invalidateQueries({ queryKey: ['module', moduleId] });

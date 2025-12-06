@@ -28,18 +28,18 @@ export async function handleAIChatGeneration(
       return;
     }
 
-    // Save user message to database
+    // Save user message to database (with ownership verification)
     const userMessage: Message = {
       role: 'user',
       content: message.trim(),
     };
-    await addMessage(moduleId, userMessage);
+    await addMessage(moduleId, userMessage, userId);
 
-    // Get conversation history
-    const conversationHistory = await getMessages(moduleId);
+    // Get conversation history (with ownership verification)
+    const conversationHistory = await getMessages(moduleId, userId);
 
-    // Get module context for AI prompt
-    const moduleContext = await getModuleById(moduleId);
+    // Get module context for AI prompt (with ownership verification)
+    const moduleContext = await getModuleById(moduleId, userId);
     if (!moduleContext) {
       socket.emit('ai:chat:error', { error: 'Module not found' });
       return;
@@ -113,12 +113,12 @@ export async function handleAIChatGeneration(
       socket.emit('ai:chat:chunk', { chunk });
     }
 
-    // Save complete AI response to database
+    // Save complete AI response to database (with ownership verification)
     const assistantMessage: Message = {
       role: 'assistant',
       content: fullResponse,
     };
-    await addMessage(moduleId, assistantMessage);
+    await addMessage(moduleId, assistantMessage, userId);
 
     // Notify client that generation is complete
     socket.emit('ai:chat:complete', {

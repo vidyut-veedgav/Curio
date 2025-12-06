@@ -32,7 +32,7 @@ async function testModuleService() {
   console.log('Testing Module Service Methods\n');
 
   try {
-    // Get a sample session from the database
+    // Get a sample session from the database with user info
     const sampleSession = await prisma.learningSession.findFirst({
       include: {
         modules: {
@@ -47,21 +47,23 @@ async function testModuleService() {
     }
 
     const sessionId = sampleSession.id;
+    const userId = sampleSession.userId;
     const moduleId = sampleSession.modules[0].id;
 
     console.log(`Using session ID: ${sessionId}`);
+    console.log(`Using user ID: ${userId}`);
     console.log(`Using module ID: ${moduleId}\n`);
 
     // Test 1: getModules() - Get all modules for a session
     console.log('TEST 1: getModules() - Get All Modules for Session');
-    console.log('Input:', { sessionId });
-    const modules = await getModules(sessionId);
+    console.log('Input:', { sessionId, userId });
+    const modules = await getModules(sessionId, userId);
     printResult(`Output - Found ${modules.length} Modules`, modules);
 
     // Test 2: getModuleById() - Get specific module with session context
     console.log('\nTEST 2: getModuleById() - Get Specific Module Details');
-    console.log('Input:', { moduleId });
-    const moduleDetails = await getModuleById(moduleId);
+    console.log('Input:', { moduleId, userId });
+    const moduleDetails = await getModuleById(moduleId, userId);
     printResult('Output - Module with Learning Session Context', moduleDetails);
 
     // Test 3: getModuleTitle() - Get module title
@@ -76,7 +78,7 @@ async function testModuleService() {
     if (incompleteModule) {
       console.log('\nTEST 4: markModuleComplete() - Mark Module as Complete');
       console.log('Input:', { moduleId: incompleteModule.id });
-      const result = await markModuleComplete(incompleteModule.id);
+      const result = await markModuleComplete(incompleteModule.id, userId);
       printResult('Output - Module Marked Complete', {
         moduleId: result.module.id,
         moduleName: result.module.name,
@@ -93,13 +95,13 @@ async function testModuleService() {
     console.log('\nTEST 5: markModuleComplete() - Test Session Completion Detection');
     console.log('Marking all remaining modules as complete...');
 
-    const allModules = await getModules(sessionId);
+    const allModules = await getModules(sessionId, userId);
     let sessionCompleteResult = null;
 
     for (const module of allModules) {
       if (!module.isComplete) {
         console.log(`  Completing: ${module.name}`);
-        sessionCompleteResult = await markModuleComplete(module.id);
+        sessionCompleteResult = await markModuleComplete(module.id, userId);
       }
     }
 
@@ -122,7 +124,7 @@ async function testModuleService() {
     console.log('Input:', { moduleId: fakeModuleId });
 
     try {
-      const result = await getModuleById(fakeModuleId);
+      const result = await getModuleById(fakeModuleId, userId);
       if (!result) {
         printResult('Output - Module Not Found (Expected)', {
           message: 'Module not found',

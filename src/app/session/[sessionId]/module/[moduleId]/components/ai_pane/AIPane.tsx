@@ -23,7 +23,7 @@ export function AIPane({ moduleId, userId, open, onOpenChange }: AIPaneProps) {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   // Fetch chat history
-  const getMessagesQuery = useGetMessages(moduleId);
+  const getMessagesQuery = useGetMessages(moduleId, userId);
 
   // WebSocket AI chat integration
   const { messages, streamingMessage, isStreaming, isGeneratingFollowUps, sendMessage, error } = useAIChat({

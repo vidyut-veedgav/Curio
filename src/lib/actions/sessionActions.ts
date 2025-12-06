@@ -95,9 +95,10 @@ export async function getLearningSessions(userId: string) {
 
 /**
  * Retrieves a single learning session by ID
+ * Verifies that the user owns the session
  */
-export async function getLearningSessionById(sessionId: string) {
-  return prisma.learningSession.findUnique({
+export async function getLearningSessionById(sessionId: string, userId: string) {
+  const session = await prisma.learningSession.findUnique({
     where: { id: sessionId },
     include: {
       modules: {
@@ -105,6 +106,13 @@ export async function getLearningSessionById(sessionId: string) {
       },
     },
   });
+
+  // Authorization check: verify user owns this session
+  if (session && session.userId !== userId) {
+    throw new Error('Unauthorized: You do not have access to this session');
+  }
+
+  return session;
 }
 
 /**
