@@ -28,7 +28,7 @@ export default function ModulePage({ params }: ModulePageProps) {
       <div className="flex-1 flex overflow-hidden">
         {/* Left: Session Header + Module Content */}
         <div className="flex-1 flex flex-col overflow-hidden transition-all duration-300 ease-in-out">
-          <ModuleHeader sessionId={sessionId} moduleId={moduleId} />
+          <ModuleHeader sessionId={sessionId} moduleId={moduleId} isPaneOpen={isPaneOpen} onTogglePane={() => setIsPaneOpen(!isPaneOpen)} />
           <div className="flex-1 overflow-auto">
             <Content moduleId={moduleId} />
           </div>

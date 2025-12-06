@@ -106,7 +106,6 @@ export async function handleAIChatGeneration(
 
     for await (const chunk of provider.stream(aiMessages, {
       temperature: 0.7,
-      maxTokens: 500,
     })) {
       fullResponse += chunk;
       // Emit each chunk to the client

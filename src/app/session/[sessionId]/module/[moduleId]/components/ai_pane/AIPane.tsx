@@ -1,9 +1,7 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
-import Image from "next/image";
 import { ChatMessage } from "./ChatMessage";
 import { AIPaneHeader } from "./AIPaneHeader";
 import { AIPaneInput } from "./AIPaneInput";
@@ -74,35 +72,12 @@ export function AIPane({ moduleId, userId, open, onOpenChange }: AIPaneProps) {
   }, [messageCount]); // Only scroll when message count changes, not on every keystroke
 
   return (
-    <>
-      {/* Collapsed sidebar with AI button */}
-      {!open && (
-        <div className="w-12 bg-background border-l flex items-start justify-center pt-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => onOpenChange(true)}
-            className="h-8 w-8 group hover:bg-secondary"
-          >
-            <Image
-              src="/icons/ai.png"
-              alt="AI"
-              width={20}
-              height={20}
-              className="group-hover:brightness-0 transition-all"
-            />
-            <span className="sr-only">Open AI Tutor</span>
-          </Button>
-        </div>
+    <div
+      className={cn(
+        "bg-background border-l flex flex-col overflow-hidden transition-all duration-500 ease-in-out",
+        open ? "w-full sm:w-[42rem]" : "w-0"
       )}
-
-      {/* Expanded AI Pane */}
-      <div
-        className={cn(
-          "bg-background border-l flex flex-col overflow-hidden transition-all duration-500 ease-in-out",
-          open ? "w-full sm:w-[42rem]" : "w-0"
-        )}
-      >
+    >
         {/* Header */}
         <AIPaneHeader onClose={() => onOpenChange(false)} />
 
@@ -156,9 +131,8 @@ export function AIPane({ moduleId, userId, open, onOpenChange }: AIPaneProps) {
           </div>
         </ScrollArea>
 
-        {/* Message Input Area */}
-        <AIPaneInput onSendMessage={sendMessage} isStreaming={isStreaming} />
-      </div>
-    </>
+      {/* Message Input Area */}
+      <AIPaneInput onSendMessage={sendMessage} isStreaming={isStreaming} />
+    </div>
   );
 }
