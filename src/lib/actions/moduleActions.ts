@@ -4,8 +4,23 @@ import { prisma } from '@/lib/prisma/db';
 
 /**
  * Retrieves all modules for a learning session
+ * Verifies that the user owns the session
  */
-export async function getModules(sessionId: string) {
+export async function getModules(sessionId: string, userId: string) {
+  // First verify the session belongs to the user
+  const session = await prisma.learningSession.findUnique({
+    where: { id: sessionId },
+    select: { userId: true },
+  });
+
+  if (!session) {
+    throw new Error('Session not found');
+  }
+
+  if (session.userId !== userId) {
+    throw new Error('Unauthorized: You do not have access to this session');
+  }
+
   return prisma.module.findMany({
     where: { learningSessionId: sessionId },
     orderBy: { order: 'asc' },
@@ -25,9 +40,10 @@ export async function getModules(sessionId: string) {
 /**
  * Retrieves a single module by ID with full context
  * Includes session details and all sibling modules for AI prompt context
+ * Verifies that the user owns the module's session
  */
-export async function getModuleById(moduleId: string) {
-  return prisma.module.findUnique({
+export async function getModuleById(moduleId: string, userId: string) {
+  const module = await prisma.module.findUnique({
     where: { id: moduleId },
     select: {
       id: true,
@@ -44,6 +60,7 @@ export async function getModuleById(moduleId: string) {
           id: true,
           name: true,
           description: true,
+          userId: true,
           modules: {
             select: {
               id: true,
@@ -57,16 +74,42 @@ export async function getModuleById(moduleId: string) {
       },
     },
   });
+
+  // Authorization check: verify user owns the session this module belongs to
+  if (module && module.learningSession.userId !== userId) {
+    throw new Error('Unauthorized: You do not have access to this module');
+  }
+
+  return module;
 }
 
 /**
  * Marks a module as complete and updates session progress
+ * Verifies that the user owns the module's session
  *
  * Business logic:
  * - Users can mark modules complete even if chat is left halfway
  * - Module completion triggers session progress update
  */
-export async function markModuleComplete(moduleId: string) {
+export async function markModuleComplete(moduleId: string, userId: string) {
+  // First verify the module belongs to a session owned by the user
+  const existingModule = await prisma.module.findUnique({
+    where: { id: moduleId },
+    select: {
+      learningSession: {
+        select: { userId: true },
+      },
+    },
+  });
+
+  if (!existingModule) {
+    throw new Error('Module not found');
+  }
+
+  if (existingModule.learningSession.userId !== userId) {
+    throw new Error('Unauthorized: You do not have access to this module');
+  }
+
   const module = await prisma.module.update({
     where: { id: moduleId },
     data: { isComplete: true },

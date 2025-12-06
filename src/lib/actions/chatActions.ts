@@ -24,15 +24,26 @@ export interface SendMessageInput {
 
 /**
  * Retrieves all chat messages for a module
+ * Verifies that the user owns the module's session
  */
-export async function getMessages(moduleId: string): Promise<Message[]> {
+export async function getMessages(moduleId: string, userId: string): Promise<Message[]> {
   const moduleData = await prisma.module.findUnique({
     where: { id: moduleId },
-    select: { messages: true },
+    select: {
+      messages: true,
+      learningSession: {
+        select: { userId: true },
+      },
+    },
   });
 
   if (!moduleData) {
     throw new Error('Module not found');
+  }
+
+  // Authorization check: verify user owns the session this module belongs to
+  if (moduleData.learningSession.userId !== userId) {
+    throw new Error('Unauthorized: You do not have access to this module');
   }
 
   // Parse and validate JSONB messages
@@ -43,9 +54,10 @@ export async function getMessages(moduleId: string): Promise<Message[]> {
 
 /**
  * Adds a single message to the module's message array
+ * Verifies that the user owns the module's session
  */
-export async function addMessage(moduleId: string, message: Message): Promise<void> {
-  const currentMessages = await getMessages(moduleId);
+export async function addMessage(moduleId: string, message: Message, userId: string): Promise<void> {
+  const currentMessages = await getMessages(moduleId, userId);
 
   // Check message limit
   const MAX_MESSAGES_PER_MODULE = 100;

@@ -42,12 +42,13 @@ async function testChatService() {
   console.log('Testing Chat Service Methods\n');
 
   try {
-    // Get a sample module from the database
+    // Get a sample module from the database with user info
     const sampleModule = await prisma.module.findFirst({
       include: {
         learningSession: {
           select: {
             name: true,
+            userId: true,
           },
         },
       },
@@ -59,14 +60,16 @@ async function testChatService() {
     }
 
     const moduleId = sampleModule.id;
+    const userId = sampleModule.learningSession.userId;
     console.log(`Using module ID: ${moduleId}`);
+    console.log(`Using user ID: ${userId}`);
     console.log(`Module: ${sampleModule.name}`);
     console.log(`Session: ${sampleModule.learningSession.name}\n`);
 
     // Test 1: getMessages() - Get existing messages
     console.log('TEST 1: getMessages() - Retrieve Existing Messages');
-    console.log('Input:', { moduleId });
-    const existingMessages = await getMessages(moduleId);
+    console.log('Input:', { moduleId, userId });
+    const existingMessages = await getMessages(moduleId, userId);
     printResult(`Output - Found ${existingMessages.length} Existing Messages`, existingMessages);
 
     if (existingMessages.length > 0) {
@@ -79,11 +82,11 @@ async function testChatService() {
       content: 'Can you give me a quick summary of what I need to learn in this module?',
       role: 'user' as const,
     };
-    console.log('Input:', { moduleId, message: userMessage1 });
+    console.log('Input:', { moduleId, userId, message: userMessage1 });
     console.log('Adding message...');
 
     const startTime1 = Date.now();
-    await addMessage(moduleId, userMessage1);
+    await addMessage(moduleId, userMessage1, userId);
     const endTime1 = Date.now();
 
     printResult(`Output - Message Added (${endTime1 - startTime1}ms)`, {
@@ -97,11 +100,11 @@ async function testChatService() {
       content: 'What would you recommend I focus on first?',
       role: 'user' as const,
     };
-    console.log('Input:', { moduleId, message: userMessage2 });
+    console.log('Input:', { moduleId, userId, message: userMessage2 });
     console.log('Adding message...');
 
     const startTime2 = Date.now();
-    await addMessage(moduleId, userMessage2);
+    await addMessage(moduleId, userMessage2, userId);
     const endTime2 = Date.now();
 
     printResult(`Output - Message Added (${endTime2 - startTime2}ms)`, {
@@ -111,8 +114,8 @@ async function testChatService() {
 
     // Test 4: getMessages() - View updated conversation
     console.log('\nTEST 4: getMessages() - View Full Conversation After New Messages');
-    console.log('Input:', { moduleId });
-    const updatedMessages = await getMessages(moduleId);
+    console.log('Input:', { moduleId, userId });
+    const updatedMessages = await getMessages(moduleId, userId);
     printResult(`Output - Now ${updatedMessages.length} Total Messages`, {
       totalMessages: updatedMessages.length,
       lastMessage: updatedMessages[updatedMessages.length - 1],
@@ -126,8 +129,8 @@ async function testChatService() {
       content: 'This is a manually added assistant message for testing purposes.',
       role: 'assistant' as const,
     };
-    console.log('Input:', { moduleId, message: assistantMessageDirect });
-    await addMessage(moduleId, assistantMessageDirect);
+    console.log('Input:', { moduleId, userId, message: assistantMessageDirect });
+    await addMessage(moduleId, assistantMessageDirect, userId);
 
     printResult('Output - Assistant Message Added', {
       success: true,
@@ -183,14 +186,14 @@ async function testChatService() {
 
       // Try to add one more user message (should fail)
       console.log('\nAttempting to add message 101 (should fail)...');
-      const currentMessages = await getMessages(limitTestModuleId);
+      const currentMessages = await getMessages(limitTestModuleId, testUser.id);
       console.log(`Current message count: ${currentMessages.length}`);
 
       try {
         await addMessage(limitTestModuleId, {
           content: 'This should fail',
           role: 'user',
-        });
+        }, testUser.id);
         console.log('ERROR: Expected this to fail at 100 messages, but it succeeded!');
       } catch (error: any) {
         printResult('Output - Message Limit Enforced (Expected)', {

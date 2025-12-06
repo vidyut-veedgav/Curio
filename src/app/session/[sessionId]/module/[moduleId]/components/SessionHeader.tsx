@@ -3,6 +3,7 @@
 import { ArrowLeft, Check } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Spinner } from "@/components/ui/spinner";
@@ -15,12 +16,14 @@ interface SessionHeaderProps {
 
 export function SessionHeader({ sessionId, moduleId }: SessionHeaderProps) {
   const router = useRouter();
+  const { data: session } = useSession();
+  const userId = session?.user?.id || "";
 
   // Fetch module data
-  const getModuleQuery = useGetModule(moduleId);
+  const getModuleQuery = useGetModule(moduleId, userId);
 
   // Mark module complete mutation
-  const markModuleCompleteMutation = useMarkModuleComplete();
+  const markModuleCompleteMutation = useMarkModuleComplete(userId);
 
   // Extract module and session names from fetched data
   const sessionName = getModuleQuery.data?.learningSession?.name || "Loading...";

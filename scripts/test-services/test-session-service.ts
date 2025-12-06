@@ -52,8 +52,8 @@ async function testSessionService() {
     if (sessions.length > 0) {
       console.log('\nTEST 2: getSessionById() - Get Specific Session');
       const sessionId = sessions[0].id;
-      console.log('Input:', { sessionId });
-      const session = await getLearningSessionById(sessionId);
+      console.log('Input:', { sessionId, userId });
+      const session = await getLearningSessionById(sessionId, userId);
       printResult('Output - Session Details with Modules', session);
     }
 

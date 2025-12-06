@@ -14,7 +14,6 @@ import { useGetUser } from "@/hooks/useGetUser";
 import { useGetSessions, useCreateSession } from "./hooks";
 
 export default function HomePage() {
-
   const { data: session, status: sessionStatus } = useSession();
 
   const userId = session?.user?.id || "";

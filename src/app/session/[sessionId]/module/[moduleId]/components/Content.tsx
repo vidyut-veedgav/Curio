@@ -1,5 +1,6 @@
 'use client';
 
+import { useSession } from 'next-auth/react';
 import { useGetModule } from '../hooks';
 import MarkdownRenderer from '@/app/MarkdownRenderer';
 
@@ -8,7 +9,10 @@ interface ContentProps {
 }
 
 export function Content({ moduleId }: ContentProps) {
-  const getModuleQuery = useGetModule(moduleId);
+  const { data: session } = useSession();
+  const userId = session?.user?.id || "";
+
+  const getModuleQuery = useGetModule(moduleId, userId);
 
   if (getModuleQuery.isLoading) {
     return (
