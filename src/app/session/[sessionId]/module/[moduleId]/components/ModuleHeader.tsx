@@ -34,6 +34,7 @@ export function ModuleHeader({ sessionId, moduleId, isPaneOpen, onTogglePane }: 
   const moduleName = moduleOrder !== undefined
     ? `${moduleOrder + 1}. ${getModuleQuery.data?.name || ""}`
     : getModuleQuery.data?.name || "";
+  const isModuleComplete = getModuleQuery.data?.isComplete || false;
 
   // Handle complete button click
   const handleComplete = async () => {
@@ -77,7 +78,7 @@ export function ModuleHeader({ sessionId, moduleId, isPaneOpen, onTogglePane }: 
             </Tooltip>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button onClick={handleComplete} disabled={markModuleCompleteMutation.isPending} variant="outline" size="icon" className="rounded-lg hover:bg-secondary hover:text-secondary-foreground">
+                <Button onClick={handleComplete} disabled={markModuleCompleteMutation.isPending || isModuleComplete} variant="outline" size="icon" className="rounded-lg hover:bg-secondary hover:text-secondary-foreground">
                   {markModuleCompleteMutation.isPending ? <Spinner className="h-5 w-5" /> : <Check className="h-5 w-5" />}
                 </Button>
               </TooltipTrigger>
