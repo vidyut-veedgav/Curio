@@ -105,7 +105,7 @@ export function useAIChat({ moduleId, userId }: UseAIChatOptions): UseAIChatRetu
 
         // Generate and save follow-up questions after state is updated
         try {
-          const result = await createFollowUpQuestions(updatedMessages, 3);
+          const result = await createFollowUpQuestions(moduleId, userId, 3);
           if (result?.questions) {
             await addCurrentFollowUps(moduleId, result.questions);
             // Invalidate to refetch and show new follow-ups

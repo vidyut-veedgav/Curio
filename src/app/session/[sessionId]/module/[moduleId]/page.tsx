@@ -28,7 +28,7 @@ export default function ModulePage({ params }: ModulePageProps) {
       {/* Main Content Area - Resizable Panels */}
       <PanelGroup direction="horizontal" className="flex-1">
         {/* Left: Session Header + Module Content */}
-        <Panel defaultSize={60} minSize={30} className={isPaneOpen ? "hidden md:flex" : ""}>
+        <Panel defaultSize={60} minSize={30}>
           <div className="h-full flex flex-col overflow-hidden">
             <ModuleHeader sessionId={sessionId} moduleId={moduleId} isPaneOpen={isPaneOpen} onTogglePane={() => setIsPaneOpen(!isPaneOpen)} />
             <div className="flex-1 overflow-auto">
