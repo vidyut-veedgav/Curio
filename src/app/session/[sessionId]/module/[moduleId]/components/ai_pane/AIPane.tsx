@@ -72,7 +72,7 @@ export function AIPane({ moduleId, userId, open, onOpenChange }: AIPaneProps) {
   }
 
   return (
-    <Panel defaultSize={40} minSize={20} maxSize={70} className="bg-background border-l flex flex-col overflow-hidden">
+    <Panel defaultSize={40} minSize={20} maxSize={70} className="bg-background border-l flex flex-col overflow-hidden md:flex w-full md:w-auto">
       {/* Header */}
       <AIPaneHeader onClose={() => onOpenChange(false)} />
 
