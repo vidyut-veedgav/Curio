@@ -28,7 +28,7 @@ export default function ModulePage({ params }: ModulePageProps) {
       {/* Main Content Area - Resizable Panels */}
       <PanelGroup direction="horizontal" className="flex-1">
         {/* Left: Session Header + Module Content */}
-        <Panel defaultSize={60} minSize={30}>
+        <Panel defaultSize={60} minSize={30} className={isPaneOpen ? "hidden md:flex" : ""}>
           <div className="h-full flex flex-col overflow-hidden">
             <ModuleHeader sessionId={sessionId} moduleId={moduleId} isPaneOpen={isPaneOpen} onTogglePane={() => setIsPaneOpen(!isPaneOpen)} />
             <div className="flex-1 overflow-auto">
@@ -37,9 +37,9 @@ export default function ModulePage({ params }: ModulePageProps) {
           </div>
         </Panel>
 
-        {/* Resize Handle - only visible when pane is open */}
+        {/* Resize Handle - only visible when pane is open on desktop */}
         {isPaneOpen && (
-          <PanelResizeHandle className="w-1 bg-border cursor-col-resize" />
+          <PanelResizeHandle className="hidden md:block w-1 bg-border cursor-col-resize" />
         )}
 
         {/* Right: AI Chat Pane - handles its own Panel wrapper */}

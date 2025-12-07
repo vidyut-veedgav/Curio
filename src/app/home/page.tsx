@@ -3,13 +3,13 @@
 import { useMemo, useState } from "react";
 import { useSession } from "next-auth/react";
 import { Header } from "../../components/Header";
-import { SessionCard } from "./components/SessionCard";
+import { SessionList } from "./components/SessionList";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
-import { Menu, X } from "lucide-react";
+import { Menu } from "lucide-react";
 import { useGetUser } from "@/hooks/useGetUser";
 import { useGetSessions, useCreateSession } from "./hooks";
 
@@ -98,43 +98,13 @@ export default function HomePage() {
       )}
 
       <div className="flex flex-1 overflow-hidden relative">
-        {/* Mobile Overlay */}
-        {sidebarOpen && (
-          <div
-            className="fixed inset-0 bg-black/50 z-40 md:hidden"
-            onClick={() => setSidebarOpen(false)}
-          />
-        )}
-
         {/* Sidebar */}
-        <aside className={`${sidebarOpen ? "w-[85vw] sm:w-[400px] md:w-[480px]" : "w-0"} transition-all duration-300 overflow-hidden border-r bg-background fixed md:relative h-full z-50 md:z-auto`}>
-          <div className="p-6 h-full overflow-y-auto">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-semibold">Learning Sessions</h2>
-              <Button variant="ghost" size="icon" onClick={() => setSidebarOpen(false)} className="h-8 w-8">
-                <X className="h-5 w-5" />
-              </Button>
-            </div>
-            <div className="space-y-4">
-              {getSessionsQuery.isLoading ? (
-                <p className="text-muted-foreground text-center py-8">Loading sessions...</p>
-              ) : sessionData.length === 0 ? (
-                <p className="text-muted-foreground text-center py-8">No learning sessions yet. Create one to get started!</p>
-              ) : (
-                sessionData.map((session) => (
-                  <SessionCard
-                    key={session.id}
-                    id={session.id}
-                    title={session.title}
-                    progress={session.progress}
-                    modulesCompleted={session.modulesCompleted}
-                    totalModules={session.totalModules}
-                  />
-                ))
-              )}
-            </div>
-          </div>
-        </aside>
+        <SessionList
+          open={sidebarOpen}
+          onClose={() => setSidebarOpen(false)}
+          sessionData={sessionData}
+          isLoading={getSessionsQuery.isLoading}
+        />
 
         {/* Main Content */}
         <div className="flex-1 flex flex-col">
@@ -148,7 +118,7 @@ export default function HomePage() {
           )}
 
           <main className="flex-1 flex justify-center px-4 sm:px-6 pt-16 sm:pt-24">
-            <div className="w-full max-w-3xl flex flex-col items-center space-y-6 sm:space-y-8 md:space-y-10">
+            <div className="w-full max-w-3xl flex flex-col items-center space-y-10 sm:space-y-8 md:space-y-10">
               <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold text-center text-primary max-w-2xl px-4">
                 {firstName ? `What do you want to learn today, ${firstName}?` : "What do you want to learn today?"}
               </h1>

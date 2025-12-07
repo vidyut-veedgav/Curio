@@ -1,6 +1,5 @@
 "use client";
 
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ChatMessage } from "./ChatMessage";
 import { AIPaneHeader } from "./AIPaneHeader";
@@ -64,10 +63,7 @@ export function AIPane({ moduleId, userId, open, onOpenChange }: AIPaneProps) {
 
   useEffect(() => {
     if (scrollAreaRef.current) {
-      const scrollContainer = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
-      if (scrollContainer) {
-        scrollContainer.scrollTop = scrollContainer.scrollHeight;
-      }
+      scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight;
     }
   }, [messageCount]); // Only scroll when message count changes, not on every keystroke
 
@@ -76,64 +72,56 @@ export function AIPane({ moduleId, userId, open, onOpenChange }: AIPaneProps) {
   }
 
   return (
-    <Panel defaultSize={40} minSize={20} maxSize={70} className="flex">
-      <div className="bg-background border-l flex flex-col overflow-hidden w-full">
-        {/* Header */}
-        <AIPaneHeader onClose={() => onOpenChange(false)} />
+    <Panel defaultSize={40} minSize={20} maxSize={70} className="bg-background border-l flex flex-col overflow-hidden md:flex w-full md:w-auto">
+      {/* Header */}
+      <AIPaneHeader onClose={() => onOpenChange(false)} />
 
-        {/* Chat Messages Area */}
-        <ScrollArea className="flex-1" ref={scrollAreaRef}>
-          <div className="flex justify-center py-6">
-            <div className="w-[calc(100%-1rem)] max-w-2xl px-6">
-              <div className="space-y-4">
-                {getMessagesQuery.isLoading ? (
-                  <div className="space-y-8 py-6">
-                    <div className="space-y-2">
-                      <Skeleton className="h-4 w-full" />
-                      <Skeleton className="h-4 w-full" />
-                      <Skeleton className="h-4 w-3/4" />
-                      <Skeleton className="h-4 w-5/6" />
-                    </div>
-                    <div className="space-y-2">
-                      <Skeleton className="h-4 w-full" />
-                      <Skeleton className="h-4 w-full" />
-                      <Skeleton className="h-4 w-2/3" />
-                      <Skeleton className="h-4 w-4/5" />
-                    </div>
-                  </div>
-                ) : (
-                  displayMessages.map((message, index) => (
-                    <ChatMessage
-                      key={`${message.role}-${index}`}
-                      content={message.content}
-                      role={message.role}
-                    />
-                  ))
-                )}
-                {error && (
-                  <div className="text-center text-destructive text-sm py-3">
-                    Error: {error}
-                  </div>
-                )}
-
-                {/* Follow-up Questions */}
-                {!getMessagesQuery.isLoading && !isStreaming && displayMessages.length > 0 && (
-                  <div className="mt-6">
-                    <FollowUpQuestions
-                      questions={followUpQuestions}
-                      isLoading={followUpQuestionsQuery.isLoading || followUpQuestionsQuery.isFetching || isGeneratingFollowUps}
-                      onQuestionClick={sendMessage}
-                    />
-                  </div>
-                )}
-              </div>
+      {/* Chat Messages Area */}
+      <div ref={scrollAreaRef} className="flex-1 overflow-y-auto py-6 px-6 space-y-4">
+        {getMessagesQuery.isLoading ? (
+          <div className="space-y-8 py-6">
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-3/4" />
+              <Skeleton className="h-4 w-5/6" />
+            </div>
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-2/3" />
+              <Skeleton className="h-4 w-4/5" />
             </div>
           </div>
-        </ScrollArea>
+        ) : (
+          displayMessages.map((message, index) => (
+            <ChatMessage
+              key={`${message.role}-${index}`}
+              content={message.content}
+              role={message.role}
+            />
+          ))
+        )}
+        {error && (
+          <div className="text-center text-destructive text-sm py-3">
+            Error: {error}
+          </div>
+        )}
 
-        {/* Message Input Area */}
-        <AIPaneInput onSendMessage={sendMessage} isStreaming={isStreaming} />
+        {/* Follow-up Questions */}
+        {!getMessagesQuery.isLoading && !isStreaming && displayMessages.length > 0 && (
+          <div className="mt-6">
+            <FollowUpQuestions
+              questions={followUpQuestions}
+              isLoading={followUpQuestionsQuery.isLoading || followUpQuestionsQuery.isFetching || isGeneratingFollowUps}
+              onQuestionClick={sendMessage}
+            />
+          </div>
+        )}
       </div>
+
+      {/* Message Input Area */}
+      <AIPaneInput onSendMessage={sendMessage} isStreaming={isStreaming} />
     </Panel>
   );
 }

@@ -34,6 +34,7 @@ export function ModuleHeader({ sessionId, moduleId, isPaneOpen, onTogglePane }: 
   const moduleName = moduleOrder !== undefined
     ? `${moduleOrder + 1}. ${getModuleQuery.data?.name || ""}`
     : getModuleQuery.data?.name || "";
+  const isModuleComplete = getModuleQuery.data?.isComplete || false;
 
   // Handle complete button click
   const handleComplete = async () => {
@@ -49,26 +50,26 @@ export function ModuleHeader({ sessionId, moduleId, isPaneOpen, onTogglePane }: 
   return (
     <div className="bg-background flex justify-center border-b">
       <div className="w-full max-w-4xl px-6">
-        <div className="pt-4 pb-4 flex items-center justify-between gap-4">
+        <div className="pt-4 pb-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3 md:gap-4">
           <div className="flex flex-col items-start">
             {!sessionName || !moduleName ? (
               <div className="flex flex-col gap-1">
-                <Skeleton className="h-5 w-32" />
-                <Skeleton className="h-7 w-64" />
+                <Skeleton className="h-4 md:h-5 w-32" />
+                <Skeleton className="h-6 md:h-7 w-64" />
               </div>
             ) : (
               <>
-                <p className="text-sm text-muted-foreground">{sessionName}</p>
-                <h1 className="text-2xl font-semibold">{moduleName}</h1>
+                <p className="text-xs md:text-sm text-muted-foreground">{sessionName}</p>
+                <h1 className="text-lg md:text-2xl font-semibold">{moduleName}</h1>
               </>
             )}
           </div>
 
-          <div className="flex flex-col sm:flex-row items-end sm:items-center gap-2 shrink-0">
+          <div className="flex flex-row items-center gap-2 shrink-0">
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button onClick={() => router.push(`/session/${sessionId}`)} variant="outline" size="icon" className="rounded-lg hover:bg-secondary hover:text-secondary-foreground">
-                  <ArrowLeft className="h-5 w-5" />
+                <Button onClick={() => router.push(`/session/${sessionId}`)} variant="outline" size="icon" className="rounded-lg hover:bg-secondary hover:text-secondary-foreground h-8 w-8 md:h-10 md:w-10">
+                  <ArrowLeft className="h-4 w-4 md:h-5 md:w-5" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent sideOffset={8}>
@@ -77,8 +78,8 @@ export function ModuleHeader({ sessionId, moduleId, isPaneOpen, onTogglePane }: 
             </Tooltip>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button onClick={handleComplete} disabled={markModuleCompleteMutation.isPending} variant="outline" size="icon" className="rounded-lg hover:bg-secondary hover:text-secondary-foreground">
-                  {markModuleCompleteMutation.isPending ? <Spinner className="h-5 w-5" /> : <Check className="h-5 w-5" />}
+                <Button onClick={handleComplete} disabled={markModuleCompleteMutation.isPending || isModuleComplete} variant="outline" size="icon" className="rounded-lg hover:bg-secondary hover:text-secondary-foreground h-8 w-8 md:h-10 md:w-10">
+                  {markModuleCompleteMutation.isPending ? <Spinner className="h-4 w-4 md:h-5 md:w-5" /> : <Check className="h-4 w-4 md:h-5 md:w-5" />}
                 </Button>
               </TooltipTrigger>
               <TooltipContent sideOffset={8}>
@@ -87,8 +88,8 @@ export function ModuleHeader({ sessionId, moduleId, isPaneOpen, onTogglePane }: 
             </Tooltip>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button onClick={onTogglePane} variant="outline" size="icon" className="rounded-lg hover:bg-secondary hover:text-secondary-foreground">
-                  <Bot className="h-5 w-5" />
+                <Button onClick={onTogglePane} variant="outline" size="icon" className="rounded-lg hover:bg-secondary hover:text-secondary-foreground h-8 w-8 md:h-10 md:w-10">
+                  <Bot className="h-4 w-4 md:h-5 md:w-5" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent sideOffset={8}>
