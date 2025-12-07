@@ -21,13 +21,22 @@ const markdownComponents = {
     const match = /language-(\w+)/.exec(className || "");
 
     return !inline && match ? (
-      <SyntaxHighlighter
-        style={dracula as { [key: string]: React.CSSProperties }}
-        PreTag="div"
-        language={match[1]}
-      >
-        {String(codeChildren).replace(/\n$/, "")}
-      </SyntaxHighlighter>
+      <div style={{ maxWidth: '100%', width: '100%', overflow: 'hidden' }}>
+        <SyntaxHighlighter
+          style={dracula as { [key: string]: React.CSSProperties }}
+          PreTag="div"
+          language={match[1]}
+          customStyle={{
+            maxWidth: '100%',
+            width: '100%',
+            margin: 0,
+            overflow: 'auto',
+          }}
+          wrapLongLines={false}
+        >
+          {String(codeChildren).replace(/\n$/, "")}
+        </SyntaxHighlighter>
+      </div>
     ) : (
       <code className={className} {...rest}>
         {codeChildren}

@@ -32,16 +32,17 @@ const ChatMessage = React.memo(React.forwardRef<HTMLDivElement, ChatMessageProps
     return (
       <div
         ref={ref}
-        className="flex w-full justify-start"
+        className="flex w-full justify-start min-w-0"
         {...props}
       >
         <div
           className={cn(
             chatMessageVariants({ variant: role === "user" ? "user" : "ai" }),
+            "min-w-0",
             className
           )}
         >
-          <div className="prose prose-base dark:prose-invert max-w-none">
+          <div className="prose prose-base dark:prose-invert max-w-none w-full min-w-0">
             <MarkdownRenderer>{content}</MarkdownRenderer>
           </div>
         </div>
