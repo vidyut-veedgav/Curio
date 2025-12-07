@@ -3,8 +3,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useSocket } from '@/hooks/useSocket';
-import { Message, getMessages, createFollowUpQuestions } from '@/lib/actions/chatActions';
+import { getMessages, createFollowUpQuestions } from '@/lib/actions/chatActions';
 import { getModuleById, addCurrentFollowUps, getCurrentFollowUps, markModuleComplete, getModules } from '@/lib/actions/moduleActions';
+import { Message } from '@/lib/ai/types';
 
 interface UseAIChatOptions {
   moduleId: string;
@@ -105,7 +106,7 @@ export function useAIChat({ moduleId, userId }: UseAIChatOptions): UseAIChatRetu
 
         // Generate and save follow-up questions after state is updated
         try {
-          const result = await createFollowUpQuestions(updatedMessages, 3);
+          const result = await createFollowUpQuestions(moduleId, userId, 3);
           if (result?.questions) {
             await addCurrentFollowUps(moduleId, result.questions);
             // Invalidate to refetch and show new follow-ups

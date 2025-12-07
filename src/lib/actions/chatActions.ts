@@ -4,14 +4,9 @@ import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma/db';
 import { OpenAIProvider } from '@/lib/ai/providers/openai';
 import { getPrompt } from '@/lib/prompts';
-
-/**
- * Message structure stored in JSONB
- */
-export interface Message {
-  role: 'user' | 'assistant';
-  content: string;
-}
+import { Message } from '@/lib/ai/types';
+import { getModuleById } from './moduleActions';
+import { getUserData } from './userActions';
 
 /**
  * Interface for a sent message
@@ -74,29 +69,58 @@ export async function addMessage(moduleId: string, message: Message, userId: str
 }
 
 /**
- * Generates follow-up questions based on conversation history
+ * Generates follow-up questions based on conversation history and module context
  */
 export async function createFollowUpQuestions(
-  messages: Message[],
+  moduleId: string,
+  userId: string,
   numQuestions: number = 3
 ): Promise<{ questions: string[] }> {
   try {
+    // Fetch latest messages from database
+    const messages = await getMessages(moduleId, userId);
+
+    // Fetch module context for better question generation
+    const moduleData = await getModuleById(moduleId, userId);
+    if (!moduleData) {
+      throw new Error('Module not found');
+    }
+
+    // Fetch user data for bio
+    const userData = await getUserData(userId);
+    const userBio = userData.bio || 'No bio provided';
+
     // Use last 10 messages for context (or all if fewer than 10)
     const contextMessages = messages.slice(-10);
 
     // Initialize OpenAI provider
     const provider = new OpenAIProvider('gpt-4o-mini');
 
-    // Prepare the prompt for generating follow-up questions
-    const prompt = getPrompt('followUpQuestions.md', { numQuestions });
+    // Prepare the prompt for generating follow-up questions with module and user context
+    const prompt = getPrompt('followUpQuestions.md', {
+      numQuestions,
+      moduleName: moduleData.name,
+      moduleOverview: moduleData.overview,
+      sessionName: moduleData.learningSession.name,
+      sessionDescription: moduleData.learningSession.description || 'No description',
+      userBio,
+    });
 
     const systemPrompt: Message = {
-      role: 'assistant',
+      role: 'system',
       content: prompt.system,
     };
 
     // Combine system prompt with conversation context
     const promptMessages: Message[] = [systemPrompt, ...contextMessages];
+
+    // Debug: Log what we're sending to OpenAI
+    console.log('[Follow-up Questions Debug]', {
+      systemPromptLength: systemPrompt.content.length,
+      systemPromptPreview: systemPrompt.content.substring(0, 200),
+      contextMessageCount: contextMessages.length,
+      totalMessageCount: promptMessages.length,
+    });
 
     // Call OpenAI to generate questions
     const response = await provider.complete(promptMessages, {
