@@ -1,9 +1,10 @@
 import { Socket } from 'socket.io';
 import { OpenAIProvider } from '@/lib/ai/providers/openai';
-import { addMessage, getMessages, Message } from '@/lib/actions/chatActions';
+import { addMessage, getMessages } from '@/lib/actions/chatActions';
 import { getModuleById } from '@/lib/actions/moduleActions';
 import { getUserData } from '@/lib/actions/userActions';
 import { getPrompt } from '@/lib/prompts';
+import { Message } from '@/lib/ai/types';
 
 export interface AIChatGenerationData {
   moduleId: string;

@@ -24,7 +24,7 @@ export interface ChatMessageProps
   extends React.HTMLAttributes<HTMLDivElement>,
     VariantProps<typeof chatMessageVariants> {
   content: string;
-  role: "user" | "assistant";
+  role: "user" | "assistant" | "system";
 }
 
 const ChatMessage = React.memo(React.forwardRef<HTMLDivElement, ChatMessageProps>(
