@@ -84,7 +84,7 @@ export function SessionHeader({
       </div>
 
       {/* Header with Title */}
-      <h1 className="text-4xl font-bold mb-4">{sessionName}</h1>
+      <h1 className="text-4xl font-medium mb-4">{sessionName}</h1>
 
       {/* Progress Bar */}
       <div>

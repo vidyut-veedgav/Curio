@@ -4,8 +4,8 @@ import { useMemo, useState } from "react";
 import { useSession } from "next-auth/react";
 import { Header } from "../../components/Header";
 import { SessionList } from "./components/SessionList";
+import { CourseInput } from "./components/course_input/CourseInput";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
@@ -72,6 +72,13 @@ export default function HomePage() {
     });
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleCreateSession();
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="h-screen bg-gradient-to-b from-background via-accent/5 to-accent/20 flex flex-col overflow-hidden">
@@ -119,16 +126,15 @@ export default function HomePage() {
 
           <main className="flex-1 flex justify-center px-4 sm:px-6 pt-16 sm:pt-24">
             <div className="w-full max-w-3xl flex flex-col items-center space-y-10 sm:space-y-8 md:space-y-10">
-              <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold text-center text-primary max-w-2xl px-4">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl font-medium text-center text-primary max-w-2xl px-4">
                 {firstName ? `What do you want to learn today, ${firstName}?` : "What do you want to learn today?"}
               </h1>
 
-              <Textarea
-                placeholder="Ask Curio to teach you anything..."
-                value={topic}
-                onChange={(e) => setTopic(e.target.value)}
-                disabled={isCreatingSession}
-                className="w-full max-w-2xl h-32 !text-lg resize-none rounded-2xl px-4 py-4 shadow-lg focus-visible:ring-0 focus-visible:ring-offset-0"
+              <CourseInput
+                topic={topic}
+                setTopic={setTopic}
+                isCreatingSession={isCreatingSession}
+                onKeyDown={handleKeyDown}
               />
 
               <RadioGroup
@@ -177,7 +183,7 @@ export default function HomePage() {
                 onClick={handleCreateSession}
                 disabled={isCreatingSession || !topic.trim()}
               >
-                Create Learning Session
+                Generate Course
               </Button>
             </div>
           </main>
